@@ -60,9 +60,30 @@ export default function CharacterDetailPage() {
       {/* Шапка */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-gray-600 text-xl">←</button>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text-dim)',
+              width: '32px',
+              height: '32px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >←</button>
           <div>
-            <h1 className="text-xl font-bold text-gray-800">{character.name}</h1>
+            <h1 style={{
+              fontFamily: 'Cinzel, serif',
+              fontSize: '20px',
+              fontWeight: 700,
+              color: 'var(--text)',
+              margin: 0,
+            }}>{character.name}</h1>
             <p className="text-xs text-gray-400">{character.isNpc ? 'НПС' : 'Персонаж'} · {systemLabel}</p>
           </div>
         </div>
@@ -128,6 +149,6 @@ export default function CharacterDetailPage() {
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
-    </div>
+    </div >
   )
 }

@@ -1,3 +1,4 @@
+import { SectionTitle } from './AspectsSection'
 interface RefreshSectionProps {
   refresh: number
   currentFatePoints: number
@@ -32,7 +33,7 @@ export default function RefreshSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold text-gray-800">Fate Points</h2>
+      <SectionTitle>Fate points</SectionTitle>
       <div className="flex gap-8 justify-center bg-indigo-50 rounded-xl py-4">
         <Counter label="Refresh" value={refresh} onChange={onRefreshChange} min={1} />
         <Counter label="Текущие очки" value={currentFatePoints} onChange={onFatePointsChange} />

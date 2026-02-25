@@ -2,6 +2,7 @@ import type { Stunt } from '../../types'
 import { Button } from '../ui'
 import StuntCard from './StuntCard'
 import { generateId } from '../../utils'
+import { SectionTitle } from './AspectsSection'
 
 interface StuntsSectionProps {
   stunts: Stunt[]
@@ -22,7 +23,7 @@ export default function StuntsSection({ stunts, maxStunts, onChange }: StuntsSec
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Трюки</h2>
+        <SectionTitle>Трюки</SectionTitle>
         <span className="text-sm text-gray-400">{stunts.length} / {maxStunts}</span>
       </div>
       {stunts.map(stunt => (

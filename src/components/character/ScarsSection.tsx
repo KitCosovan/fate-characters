@@ -1,4 +1,5 @@
 import type { Scar } from '../../types'
+import { SectionTitle } from './AspectsSection'
 
 interface ScarsSectionProps {
   scars: Scar[]
@@ -19,7 +20,7 @@ export default function ScarsSection({ scars, maxScars, onChange }: ScarsSection
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Шрамы</h2>
+        <SectionTitle>Шрамы</SectionTitle>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400">{filledCount} / {maxScars}</span>
           {filledCount >= maxScars && (

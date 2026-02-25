@@ -1,4 +1,5 @@
 import type { Skill, SkillDefinition } from '../../types'
+import { SectionTitle } from './AspectsSection'
 
 // const APPROACH_RATINGS = [3, 2, 2, 1, 1, 0]
 const RATING_LABELS: Record<number, string> = {
@@ -32,7 +33,7 @@ export default function ApproachesSection({ approaches, selected, onChange }: Ap
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold text-gray-800">Подходы</h2>
+      <SectionTitle>Подходы</SectionTitle>
       <p className="text-xs text-gray-400">Распредели рейтинги: +3, +2, +2, +1, +1, +0</p>
       <div className="flex flex-col gap-2">
         {approaches.map(approach => {

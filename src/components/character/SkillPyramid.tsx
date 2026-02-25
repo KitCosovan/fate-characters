@@ -1,6 +1,7 @@
 import type { Skill, SkillDefinition, PyramidLevel } from '../../types'
 import SkillRatingBadge from './SkillRatingBadge'
 import SkillSelector from './SkillSelector'
+import { SectionTitle } from './AspectsSection'
 
 const DEFAULT_PYRAMID: PyramidLevel[] = [
   { rating: 4, count: 1 },
@@ -39,7 +40,7 @@ export default function SkillPyramid({ skills, selected, onChange, pyramidLevels
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold text-gray-800">Навыки</h2>
+      <SectionTitle>Навыки</SectionTitle>
       {pyramid.map(({ rating, count }) => (
         <div key={rating} className="flex flex-col gap-2">
           <div className="flex items-center gap-2">

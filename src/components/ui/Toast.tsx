@@ -8,15 +8,9 @@ interface ToastProps {
 }
 
 const COLORS = {
-  success: 'bg-green-600',
-  error: 'bg-red-500',
-  info: 'bg-indigo-600',
-}
-
-const ICONS = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
+  success: 'var(--success)',
+  error: 'var(--danger)',
+  info: 'var(--accent)',
 }
 
 export default function Toast({ message, type = 'success', onClose, duration = 2500 }: ToastProps) {
@@ -26,11 +20,25 @@ export default function Toast({ message, type = 'success', onClose, duration = 2
   }, [onClose, duration])
 
   return (
-    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2
-      ${COLORS[type]} text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-      animate-fade-in`}>
-      <span>{ICONS[type]}</span>
-      <span>{message}</span>
+    <div style={{
+      position: 'fixed',
+      bottom: '24px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 50,
+      background: 'var(--surface)',
+      border: `1px solid ${COLORS[type]}`,
+      borderLeft: `3px solid ${COLORS[type]}`,
+      color: 'var(--text)',
+      padding: '12px 20px',
+      borderRadius: '12px',
+      fontSize: '13px',
+      fontWeight: 500,
+      boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+      whiteSpace: 'nowrap',
+      animation: 'fadeUp 0.2s ease both',
+    }}>
+      {message}
     </div>
   )
 }

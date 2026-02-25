@@ -2,17 +2,18 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCharacterStore } from '../store/characterStore'
 import { Button, Card, Badge, Modal, Toast } from '../components/ui'
-import {
-  exportAllCharacters,
-  importCharacterFromFile,
-  importAllFromFile,
-  decodeCharacterFromUrl,
-} from '../utils'
+import { exportAllCharacters, importCharacterFromFile, importAllFromFile, decodeCharacterFromUrl } from '../utils'
 import { useToast } from '../hooks/useToast'
 import { generateId } from '../utils'
 import type { Character } from '../types'
 
 type Tab = 'characters' | 'npcs'
+
+const SYSTEM_LABELS: Record<string, string> = {
+  'fate-core': 'Fate Core',
+  'fate-accelerated': 'Accelerated',
+  'book-of-ashes': 'Книга Пепла',
+}
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -23,13 +24,11 @@ export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast, showToast, hideToast } = useToast()
 
-  // Проверяем URL на наличие shared персонажа
   useEffect(() => {
     const shared = decodeCharacterFromUrl()
     if (shared) {
       setPendingImport(shared)
       setShowImportModal(true)
-      // Чистим URL
       window.history.replaceState(null, '', window.location.pathname)
     }
   }, [])
@@ -40,21 +39,18 @@ export default function HomePage() {
     const file = e.target.files?.[0]
     if (!file) return
     try {
-      // Пробуем импортировать как одного персонажа
       try {
         const character = await importCharacterFromFile(file)
         setPendingImport(character)
         setShowImportModal(true)
       } catch {
-        // Если не получилось — пробуем как массив
         const chars = await importAllFromFile(file)
         chars.forEach(c => addCharacter({ ...c, id: generateId() }))
         showToast(`Импортировано ${chars.length} персонажей`)
       }
-    } catch (err) {
-      showToast('Ошибка импорта файла', 'error')
+    } catch {
+      showToast('Ошибка импорта', 'error')
     }
-    // Сбрасываем input
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -67,76 +63,125 @@ export default function HomePage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Персонажи</h1>
-        <div className="flex gap-2">
-          {/* Скрытый input для файлов */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleFileImport}
-          />
-          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-            📥
-          </Button>
+    <div className="fade-up">
+
+      {/* Шапка */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '20px',
+            fontWeight: 700,
+            color: 'var(--text)',
+            margin: 0,
+          }}>
+            {tab === 'npcs' ? 'НПС' : 'Персонажи'}
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleFileImport} />
+          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>📥</Button>
           {characters.length > 0 && (
-            <Button variant="secondary" size="sm" onClick={() => {
-              exportAllCharacters(characters)
-              showToast('Бэкап сохранён')
-            }}>
-              💾
-            </Button>
+            <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}>💾</Button>
           )}
-          <Button onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
+          <Button size="sm" onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
             + Создать
           </Button>
         </div>
       </div>
 
       {/* Вкладки */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
+      <div style={{
+        display: 'flex',
+        gap: '4px',
+        background: 'var(--surface)',
+        borderRadius: '12px',
+        padding: '4px',
+        marginBottom: '20px',
+        border: '1px solid var(--border)',
+      }}>
         {(['characters', 'npcs'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors
-              ${tab === t ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
+            style={{
+              flex: 1,
+              padding: '9px',
+              borderRadius: '9px',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              fontFamily: 'DM Sans, sans-serif',
+              background: tab === t ? 'var(--surface-3)' : 'transparent',
+              color: tab === t ? 'var(--text)' : 'var(--text-muted)',
+              letterSpacing: '0.02em',
+            }}
           >
             {t === 'characters' ? '🧙 Персонажи' : '👤 НПС'}
           </button>
         ))}
       </div>
 
+      {/* Список */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">{tab === 'npcs' ? '👤' : '🎭'}</p>
-          <p className="text-lg font-medium">
+        <div style={{ textAlign: 'center', padding: '64px 0' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>{tab === 'npcs' ? '👤' : '🎭'}</div>
+          <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-dim)' }}>
             {tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
           </p>
-          <p className="text-sm mt-1">Нажми «Создать» чтобы начать</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
+            Нажми «Создать» чтобы начать
+          </p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {filtered.map(c => (
-            <Card key={c.id} onClick={() => navigate(`/character/${c.id}`)}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-semibold text-gray-800">{c.name || 'Без имени'}</p>
-                  <p className="text-sm text-gray-400 mt-0.5">
-                    {c.aspects.find(a => a.slotId === 'high-concept')?.value || 'Концепция не заполнена'}
-                  </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {filtered.map((c, i) => (
+            <div
+              key={c.id}
+              className="fade-up"
+              style={{ animationDelay: `${i * 0.04}s` }}
+            >
+              <Card onClick={() => navigate(`/character/${c.id}`)}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <p style={{
+                        fontFamily: 'Cinzel, serif',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        margin: 0,
+                      }}>
+                        {c.name || 'Без имени'}
+                      </p>
+                    </div>
+                    <p style={{
+                      fontSize: '13px',
+                      color: 'var(--text-dim)',
+                      margin: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || 'Концепция не заполнена'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                    <Badge variant="accent">{SYSTEM_LABELS[c.systemId] ?? c.systemId}</Badge>
+                    <Badge variant={c.isNpc ? 'dim' : 'green'}>{c.isNpc ? 'НПС' : 'Игрок'}</Badge>
+                  </div>
                 </div>
-                <Badge variant="indigo">{c.isNpc ? 'НПС' : 'Игрок'}</Badge>
-              </div>
-            </Card>
+              </Card>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
-      {/* Модалка подтверждения импорта */}
       <Modal
         isOpen={showImportModal}
         onClose={() => { setShowImportModal(false); setPendingImport(null) }}
@@ -145,9 +190,11 @@ export default function HomePage() {
         onConfirm={confirmImport}
       >
         {pendingImport && (
-          <div className="flex flex-col gap-1">
-            <p>Добавить персонажа <strong>{pendingImport.name || 'Без имени'}</strong>?</p>
-            <p className="text-gray-400 text-xs mt-1">Система: {pendingImport.systemId}</p>
+          <div>
+            <p>Добавить <strong style={{ color: 'var(--text)' }}>{pendingImport.name || 'Без имени'}</strong>?</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Система: {SYSTEM_LABELS[pendingImport.systemId] ?? pendingImport.systemId}
+            </p>
           </div>
         )}
       </Modal>

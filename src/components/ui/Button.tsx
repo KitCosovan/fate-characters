@@ -10,23 +10,62 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const base = 'font-medium rounded-lg transition-colors disabled:opacity-50'
-
-  const variants = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
-    secondary: 'bg-gray-100 text-gray-800 hover:bg-gray-200',
-    danger: 'bg-red-500 text-white hover:bg-red-600',
-    ghost: 'text-indigo-600 hover:bg-indigo-50',
+  const base: React.CSSProperties = {
+    fontFamily: 'DM Sans, sans-serif',
+    fontWeight: 600,
+    borderRadius: '10px',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    letterSpacing: '0.02em',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
   }
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-5 py-3 text-base',
+  const variants: Record<string, React.CSSProperties> = {
+    primary: {
+      background: 'var(--accent)',
+      color: '#0d0d10',
+    },
+    secondary: {
+      background: 'var(--surface-3)',
+      color: 'var(--text)',
+      border: '1px solid var(--border)',
+    },
+    danger: {
+      background: 'var(--danger)',
+      color: '#fff',
+    },
+    ghost: {
+      background: 'transparent',
+      color: 'var(--accent)',
+    },
+  }
+
+  const sizes: Record<string, React.CSSProperties> = {
+    sm: { padding: '6px 12px', fontSize: '13px' },
+    md: { padding: '10px 18px', fontSize: '14px' },
+    lg: { padding: '14px 24px', fontSize: '15px', width: '100%', borderRadius: '12px' },
   }
 
   return (
-    <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+    <button
+      style={{ ...base, ...variants[variant], ...sizes[size] }}
+      className={className}
+      onMouseEnter={e => {
+        if (variant === 'primary') (e.currentTarget as HTMLElement).style.background = 'var(--accent-dim)'
+        if (variant === 'secondary') (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'
+        if (variant === 'danger') (e.currentTarget as HTMLElement).style.background = 'var(--danger-dim)'
+      }}
+      onMouseLeave={e => {
+        if (variant === 'primary') (e.currentTarget as HTMLElement).style.background = 'var(--accent)'
+        if (variant === 'secondary') (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'
+        if (variant === 'danger') (e.currentTarget as HTMLElement).style.background = 'var(--danger)'
+      }}
+      {...props}
+    >
       {children}
     </button>
   )

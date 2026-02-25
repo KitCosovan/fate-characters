@@ -46,10 +46,28 @@ export default function EditCharacterPage() {
     <div className="flex flex-col gap-6 pb-8">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate(`/character/${character.id}`)}
-          className="text-gray-400 hover:text-gray-600 text-xl"
+          onClick={() => navigate('/')}
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            color: 'var(--text-dim)',
+            width: '32px',
+            height: '32px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >←</button>
-        <h1 className="text-xl font-bold text-gray-800">Редактировать</h1>
+        <h1 style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '20px',
+          fontWeight: 700,
+          color: 'var(--text)',
+          margin: 0,
+        }}>Редактировать</h1>
       </div>
 
       <Input

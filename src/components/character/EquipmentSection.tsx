@@ -1,5 +1,6 @@
 import type { EquipmentSlot } from '../../types'
 import { generateId } from '../../utils'
+import { SectionTitle } from './AspectsSection'
 
 interface EquipmentSectionProps {
   equipment: EquipmentSlot[]
@@ -40,7 +41,7 @@ export default function EquipmentSection({ equipment, totalSlots, onChange }: Eq
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Снаряжение</h2>
+        <SectionTitle>Снаряжение</SectionTitle>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium
           ${usedSlots > totalSlots ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
           {usedSlots} / {totalSlots} слотов

@@ -6,18 +6,46 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 
 export default function Textarea({ label, error, hint, className = '', ...props }: TextareaProps) {
   return (
-    <div className="flex flex-col gap-1">
-      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {label && (
+        <label style={{
+          fontSize: '11px',
+          fontWeight: 600,
+          color: 'var(--text-dim)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+        }}>
+          {label}
+        </label>
+      )}
       <textarea
-        className={`border rounded-lg px-3 py-2 text-sm outline-none transition-colors resize-none
-          focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
-          ${error ? 'border-red-400' : 'border-gray-300'}
-          ${className}`}
+        style={{
+          background: 'var(--input-bg)',
+          border: `1px solid ${error ? 'var(--danger)' : 'var(--input-border)'}`,
+          borderRadius: '10px',
+          padding: '10px 14px',
+          fontSize: '14px',
+          color: 'var(--input-text)',
+          outline: 'none',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
+          fontFamily: 'DM Sans, sans-serif',
+          resize: 'none',
+          width: '100%',
+        }}
         rows={3}
+        onFocus={e => {
+          e.target.style.borderColor = error ? 'var(--danger)' : 'var(--input-border-focus)'
+          e.target.style.boxShadow = error ? 'none' : 'var(--input-shadow-focus)'
+        }}
+        onBlur={e => {
+          e.target.style.borderColor = error ? 'var(--danger)' : 'var(--input-border)'
+          e.target.style.boxShadow = 'none'
+        }}
+        className={className}
         {...props}
       />
-      {hint && !error && <p className="text-xs text-gray-400">{hint}</p>}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {hint && !error && <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{hint}</p>}
+      {error && <p style={{ fontSize: '12px', color: 'var(--danger)', margin: 0 }}>{error}</p>}
     </div>
   )
 }

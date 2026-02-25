@@ -2,6 +2,7 @@ import type { StressTrack as StressTrackType, Consequence } from '../../types'
 import type { StressTrackConfig } from '../../types'
 import StressTrack from './StressTrack'
 import ConsequenceSlot from './ConsequenceSlot'
+import { SectionTitle } from './AspectsSection'
 
 interface StressSectionProps {
   stressTracks: StressTrackType[]
@@ -28,7 +29,7 @@ export default function StressSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold text-gray-800">Стресс и последствия</h2>
+      <SectionTitle>Стресс и последствия</SectionTitle>
 
       <div className="flex flex-col gap-3">
         {stressTracks.map(track => {

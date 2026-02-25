@@ -42,13 +42,36 @@ export default function CreateCharacterPage() {
     navigate('/')
   }
 
-  const Divider = () => <div className="w-full h-px bg-gray-200" />
+  const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
   return (
     <div className="flex flex-col gap-6 pb-8">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/')} className="text-gray-400 hover:text-gray-600 text-xl">←</button>
-        <h1 className="text-xl font-bold text-gray-800">Новый персонаж</h1>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            color: 'var(--text-dim)',
+            width: '32px',
+            height: '32px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ←
+        </button>
+        <h1 style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '20px',
+          fontWeight: 700,
+          color: 'var(--text)',
+          margin: 0,
+        }}>Новый персонаж</h1>
       </div>
 
       <SystemSelector selected={systemId} onSelect={handleSystemChange} />
@@ -69,20 +92,22 @@ export default function CreateCharacterPage() {
       />
       <Divider />
 
-      {config.skillMode === 'approaches' ? (
-        <ApproachesSection
-          approaches={config.skills}
-          selected={character.skills}
-          onChange={skills => update({ skills })}
-        />
-      ) : (
-        <SkillPyramid
-          skills={config.skills}
-          selected={character.skills}
-          onChange={skills => update({ skills })}
-          pyramidLevels={config.pyramidLevels}
-        />
-      )}
+      {
+        config.skillMode === 'approaches' ? (
+          <ApproachesSection
+            approaches={config.skills}
+            selected={character.skills}
+            onChange={skills => update({ skills })}
+          />
+        ) : (
+          <SkillPyramid
+            skills={config.skills}
+            selected={character.skills}
+            onChange={skills => update({ skills })}
+            pyramidLevels={config.pyramidLevels}
+          />
+        )
+      }
       <Divider />
 
       <StuntsSection
@@ -101,27 +126,31 @@ export default function CreateCharacterPage() {
       />
       <Divider />
 
-      {config.hasScars && (
-        <>
-          <div className="w-full h-px bg-gray-200" />
-          <ScarsSection
-            scars={character.scars}
-            maxScars={config.maxScars ?? 3}
-            onChange={scars => update({ scars })}
-          />
-        </>
-      )}
+      {
+        config.hasScars && (
+          <>
+            <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+            <ScarsSection
+              scars={character.scars}
+              maxScars={config.maxScars ?? 3}
+              onChange={scars => update({ scars })}
+            />
+          </>
+        )
+      }
 
-      {config.hasEquipment && (
-        <>
-          <div className="w-full h-px bg-gray-200" />
-          <EquipmentSection
-            equipment={character.equipment}
-            totalSlots={config.equipmentSlots ?? 6}
-            onChange={equipment => update({ equipment })}
-          />
-        </>
-      )}
+      {
+        config.hasEquipment && (
+          <>
+            <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+            <EquipmentSection
+              equipment={character.equipment}
+              totalSlots={config.equipmentSlots ?? 6}
+              onChange={equipment => update({ equipment })}
+            />
+          </>
+        )
+      }
 
       <RefreshSection
         refresh={character.refresh}
@@ -133,6 +162,6 @@ export default function CreateCharacterPage() {
       <Button size="lg" onClick={handleSave} className="w-full mt-2">
         Сохранить персонажа
       </Button>
-    </div>
+    </div >
   )
 }

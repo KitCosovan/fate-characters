@@ -58,8 +58,29 @@ export default function CreateNpcPage() {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-gray-600 text-xl">←</button>
-          <h1 className="text-xl font-bold text-gray-800">Новый НПС</h1>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text-dim)',
+              width: '32px',
+              height: '32px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >←</button>
+          <h1 style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '20px',
+            fontWeight: 700,
+            color: 'var(--text)',
+            margin: 0,
+          }}>Новый НПС</h1>
         </div>
         <NpcTemplateSelector
           onSelect={handleTemplateSelect}
@@ -78,7 +99,7 @@ export default function CreateNpcPage() {
 
       <SystemSelector selected={systemId} onSelect={handleSystemChange} />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <Input
         label="Имя НПС"
@@ -87,7 +108,7 @@ export default function CreateNpcPage() {
         onChange={e => update({ name: e.target.value })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <AspectsSection
         slots={config.aspectSlots}
@@ -95,7 +116,7 @@ export default function CreateNpcPage() {
         onChange={aspects => update({ aspects })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       {config.skillMode === 'approaches' ? (
         <ApproachesSection
@@ -111,7 +132,7 @@ export default function CreateNpcPage() {
         />
       )}
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <StuntsSection
         stunts={character.stunts}
@@ -119,7 +140,7 @@ export default function CreateNpcPage() {
         onChange={stunts => update({ stunts })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <StressSection
         stressTracks={character.stressTracks}
@@ -129,7 +150,7 @@ export default function CreateNpcPage() {
         onConsequenceChange={consequences => update({ consequences })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <RefreshSection
         refresh={character.refresh}

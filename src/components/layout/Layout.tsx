@@ -3,9 +3,9 @@ import Navbar from './Navbar'
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
-      <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
+      <main style={{ flex: 1, maxWidth: '672px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
         <Outlet />
       </main>
     </div>
