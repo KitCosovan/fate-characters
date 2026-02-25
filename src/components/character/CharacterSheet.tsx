@@ -1,10 +1,11 @@
 import type { Character } from '../../types'
 import { getSystemConfig } from '../../utils'
-import { Badge } from '../ui'
+// Удали эти две строки:
+// import { Badge } from '../ui'
+// import type { StressBox } from '../../types'
 import SkillRatingBadge from './SkillRatingBadge'
 import StressTrack from './StressTrack'
 import ConsequenceSlot from './ConsequenceSlot'
-import type { StressBox } from '../../types'
 
 interface CharacterSheetProps {
   character: Character
