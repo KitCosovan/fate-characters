@@ -8,6 +8,7 @@ import CharacterDetailPage from './pages/CharacterDetailPage'
 import NotFoundPage from './pages/NotFoundPage'
 import EditCharacterPage from './pages/EditCharacterPage'
 import CreateNpcPage from './pages/CreateNpcPage'
+import EditNpcPage from './pages/EditNpcPage'
 
 function App() {
   const loadAll = useCharacterStore(state => state.loadAll)
@@ -25,6 +26,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
         <Route path="character/:id/edit" element={<EditCharacterPage />} />
         <Route path="npc/create" element={<CreateNpcPage />} />
+        <Route path="npc/:id/edit" element={<EditNpcPage />} />
       </Route>
     </Routes>
   )

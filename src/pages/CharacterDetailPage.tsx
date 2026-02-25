@@ -67,7 +67,15 @@ export default function CharacterDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={() => navigate(`/character/${character.id}/edit`)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(
+              character.isNpc
+                ? `/npc/${character.id}/edit`
+                : `/character/${character.id}/edit`
+            )}
+          >
             ✏️
           </Button>
           <Button variant="secondary" size="sm" onClick={handleExport}>
