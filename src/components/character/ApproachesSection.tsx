@@ -1,6 +1,6 @@
 import type { Skill, SkillDefinition } from '../../types'
 
-const APPROACH_RATINGS = [3, 2, 2, 1, 1, 0]
+// const APPROACH_RATINGS = [3, 2, 2, 1, 1, 0]
 const RATING_LABELS: Record<number, string> = {
   3: 'Хороший (+3)',
   2: 'Неплохой (+2)',

@@ -1,6 +1,7 @@
 import { systemsList } from '../../data'
-import { fateCoreConfig } from '../../data/fateCore'
-import { fateAcceleratedConfig } from '../../data/fateAccelerated'
+// Удали эти две строки:
+// import { fateCoreConfig } from '../../data/fateCore'
+// import { fateAcceleratedConfig } from '../../data/fateAccelerated'
 import { Card, Badge } from '../ui'
 
 const systemDescriptions: Record<string, { icon: string; details: string[] }> = {
