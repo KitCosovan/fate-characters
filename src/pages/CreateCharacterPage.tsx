@@ -11,6 +11,8 @@ import ApproachesSection from '../components/character/ApproachesSection'
 import StuntsSection from '../components/character/StuntsSection'
 import StressSection from '../components/character/StressSection'
 import RefreshSection from '../components/character/RefreshSection'
+import ScarsSection from '../components/character/ScarsSection'
+import EquipmentSection from '../components/character/EquipmentSection'
 
 export default function CreateCharacterPage() {
   const navigate = useNavigate()
@@ -28,8 +30,7 @@ export default function CreateCharacterPage() {
 
   const handleSystemChange = (newSystemId: string) => {
     setSystemId(newSystemId)
-    const newConfig = getSystemConfig(newSystemId)
-    setCharacter(createEmptyCharacter(newConfig))
+    setCharacter(createEmptyCharacter(getSystemConfig(newSystemId)))
   }
 
   const handleSave = () => {
@@ -41,6 +42,8 @@ export default function CreateCharacterPage() {
     navigate('/')
   }
 
+  const Divider = () => <div className="w-full h-px bg-gray-200" />
+
   return (
     <div className="flex flex-col gap-6 pb-8">
       <div className="flex items-center gap-3">
@@ -49,8 +52,7 @@ export default function CreateCharacterPage() {
       </div>
 
       <SystemSelector selected={systemId} onSelect={handleSystemChange} />
-
-      <div className="w-full h-px bg-gray-200" />
+      <Divider />
 
       <Input
         label="Имя персонажа"
@@ -58,16 +60,14 @@ export default function CreateCharacterPage() {
         value={character.name}
         onChange={e => update({ name: e.target.value })}
       />
-
-      <div className="w-full h-px bg-gray-200" />
+      <Divider />
 
       <AspectsSection
         slots={config.aspectSlots}
         aspects={character.aspects}
         onChange={aspects => update({ aspects })}
       />
-
-      <div className="w-full h-px bg-gray-200" />
+      <Divider />
 
       {config.skillMode === 'approaches' ? (
         <ApproachesSection
@@ -80,18 +80,17 @@ export default function CreateCharacterPage() {
           skills={config.skills}
           selected={character.skills}
           onChange={skills => update({ skills })}
+          pyramidLevels={config.pyramidLevels}
         />
       )}
-
-      <div className="w-full h-px bg-gray-200" />
+      <Divider />
 
       <StuntsSection
         stunts={character.stunts}
         maxStunts={config.maxStunts}
         onChange={stunts => update({ stunts })}
       />
-
-      <div className="w-full h-px bg-gray-200" />
+      <Divider />
 
       <StressSection
         stressTracks={character.stressTracks}
@@ -100,8 +99,29 @@ export default function CreateCharacterPage() {
         onStressChange={stressTracks => update({ stressTracks })}
         onConsequenceChange={consequences => update({ consequences })}
       />
+      <Divider />
 
-      <div className="w-full h-px bg-gray-200" />
+      {config.hasScars && (
+        <>
+          <div className="w-full h-px bg-gray-200" />
+          <ScarsSection
+            scars={character.scars}
+            maxScars={config.maxScars ?? 3}
+            onChange={scars => update({ scars })}
+          />
+        </>
+      )}
+
+      {config.hasEquipment && (
+        <>
+          <div className="w-full h-px bg-gray-200" />
+          <EquipmentSection
+            equipment={character.equipment}
+            totalSlots={config.equipmentSlots ?? 6}
+            onChange={equipment => update({ equipment })}
+          />
+        </>
+      )}
 
       <RefreshSection
         refresh={character.refresh}

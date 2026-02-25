@@ -2,7 +2,7 @@ export type SkillMode = 'pyramid' | 'approaches' | 'columns'
 
 export interface AspectSlot {
   id: string
-  label: string        // "High Concept", "Trouble" и т.д.
+  label: string
   required: boolean
   placeholder?: string
 }
@@ -15,8 +15,13 @@ export interface SkillDefinition {
 
 export interface StressTrackConfig {
   id: string
-  label: string        // "Physical", "Mental"
+  label: string
   boxes: number
+}
+
+export interface PyramidLevel {
+  rating: number
+  count: number
 }
 
 export interface SystemConfig {
@@ -29,5 +34,10 @@ export interface SystemConfig {
   stressTracks: StressTrackConfig[]
   maxStunts: number
   refreshDefault: number
-  freeAspects: number  // количество свободных аспектов сверх обязательных
+  freeAspects: number
+  pyramidLevels?: PyramidLevel[]   // если не указано — стандартная пирамида Core
+  hasScars?: boolean               // шрамы (Книга Пепла)
+  maxScars?: number
+  hasEquipment?: boolean           // снаряжение (Книга Пепла)
+  equipmentSlots?: number
 }

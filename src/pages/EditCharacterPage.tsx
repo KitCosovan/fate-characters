@@ -10,6 +10,8 @@ import ApproachesSection from '../components/character/ApproachesSection'
 import StuntsSection from '../components/character/StuntsSection'
 import StressSection from '../components/character/StressSection'
 import RefreshSection from '../components/character/RefreshSection'
+import ScarsSection from '../components/character/ScarsSection'
+import EquipmentSection from '../components/character/EquipmentSection'
 
 export default function EditCharacterPage() {
   const { id } = useParams()

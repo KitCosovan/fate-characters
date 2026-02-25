@@ -1,7 +1,7 @@
-import type { Character, Consequence, StressTrack } from '../types'
-import type { SystemConfig } from '../types'
+import type { Character, Consequence, StressTrack, SystemConfig, Scar, EquipmentSlot } from '../types'
 import { fateCoreConfig } from '../data/fateCore'
 import { fateAcceleratedConfig } from '../data/fateAccelerated'
+import { bookOfAshesConfig } from '../data/bookOfAshes'
 
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -22,6 +22,24 @@ export const createEmptyCharacter = (systemConfig: SystemConfig, isNpc = false):
     { severity: 'severe', label: 'Тяжёлое', value: '' },
   ]
 
+  const scars: Scar[] = systemConfig.hasScars
+    ? Array.from({ length: systemConfig.maxScars ?? 3 }, (_, i) => ({
+        id: generateId(),
+        value: '',
+        replacedAspectId: '',
+      }))
+    : []
+
+  const equipment: EquipmentSlot[] = systemConfig.hasEquipment
+    ? Array.from({ length: systemConfig.equipmentSlots ?? 6 }, (_, i) => ({
+        id: generateId(),
+        name: '',
+        slots: 1,
+        freeInvokes: 0,
+        type: 'empty' as const,
+      }))
+    : []
+
   return {
     id: generateId(),
     systemId: systemConfig.id,
@@ -35,6 +53,8 @@ export const createEmptyCharacter = (systemConfig: SystemConfig, isNpc = false):
     stunts: [],
     stressTracks,
     consequences,
+    scars,
+    equipment,
     refresh: systemConfig.refreshDefault,
     currentFatePoints: systemConfig.refreshDefault,
     isNpc,
@@ -46,6 +66,7 @@ export const createEmptyCharacter = (systemConfig: SystemConfig, isNpc = false):
 export const getSystemConfig = (systemId: string): SystemConfig => {
   switch (systemId) {
     case 'fate-accelerated': return fateAcceleratedConfig
+    case 'book-of-ashes': return bookOfAshesConfig
     case 'fate-core':
     default: return fateCoreConfig
   }
