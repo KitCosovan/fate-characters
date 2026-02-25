@@ -23,21 +23,21 @@ export const createEmptyCharacter = (systemConfig: SystemConfig, isNpc = false):
   ]
 
   const scars: Scar[] = systemConfig.hasScars
-    ? Array.from({ length: systemConfig.maxScars ?? 3 }, (_, i) => ({
-        id: generateId(),
-        value: '',
-        replacedAspectId: '',
-      }))
+    ? Array.from({ length: systemConfig.maxScars ?? 3 }, () => ({
+      id: generateId(),
+      value: '',
+      replacedAspectId: '',
+    }))
     : []
 
   const equipment: EquipmentSlot[] = systemConfig.hasEquipment
-    ? Array.from({ length: systemConfig.equipmentSlots ?? 6 }, (_, i) => ({
-        id: generateId(),
-        name: '',
-        slots: 1,
-        freeInvokes: 0,
-        type: 'empty' as const,
-      }))
+    ? Array.from({ length: systemConfig.equipmentSlots ?? 6 }, () => ({
+      id: generateId(),
+      name: '',
+      slots: 1,
+      freeInvokes: 0,
+      type: 'empty' as const,
+    }))
     : []
 
   return {

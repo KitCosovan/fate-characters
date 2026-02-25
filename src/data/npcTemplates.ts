@@ -41,6 +41,8 @@ export const npcTemplates: NpcTemplate[] = [
         { severity: 'moderate', label: 'Умеренное', value: '' },
         { severity: 'severe', label: 'Тяжёлое', value: '' },
       ],
+      scars: [],
+      equipment: [],
     },
   },
   {
@@ -84,6 +86,8 @@ export const npcTemplates: NpcTemplate[] = [
         { severity: 'moderate', label: 'Умеренное', value: '' },
         { severity: 'severe', label: 'Тяжёлое', value: '' },
       ],
+      scars: [],
+      equipment: [],
     },
   },
   {
@@ -119,6 +123,8 @@ export const npcTemplates: NpcTemplate[] = [
         { severity: 'moderate', label: 'Умеренное', value: '' },
         { severity: 'severe', label: 'Тяжёлое', value: '' },
       ],
+      scars: [],
+      equipment: [],
     },
   },
   {
@@ -168,6 +174,8 @@ export const npcTemplates: NpcTemplate[] = [
         { severity: 'moderate', label: 'Умеренное', value: '' },
         { severity: 'severe', label: 'Тяжёлое', value: '' },
       ],
+      scars: [],
+      equipment: [],
     },
   },
 ]

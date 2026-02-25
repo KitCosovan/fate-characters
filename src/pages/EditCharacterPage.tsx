@@ -76,7 +76,7 @@ export default function EditCharacterPage() {
         onChange={e => update({ name: e.target.value })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <AspectsSection
         slots={config.aspectSlots}
@@ -84,7 +84,7 @@ export default function EditCharacterPage() {
         onChange={aspects => update({ aspects })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       {config.skillMode === 'approaches' ? (
         <ApproachesSection
@@ -100,7 +100,7 @@ export default function EditCharacterPage() {
         />
       )}
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <StuntsSection
         stunts={character.stunts}
@@ -108,7 +108,7 @@ export default function EditCharacterPage() {
         onChange={stunts => update({ stunts })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <StressSection
         stressTracks={character.stressTracks}
@@ -118,7 +118,33 @@ export default function EditCharacterPage() {
         onConsequenceChange={consequences => update({ consequences })}
       />
 
-      <div className="w-full h-px bg-gray-200" />
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+
+      {config.hasScars && (
+        <>
+          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+          <ScarsSection
+            scars={character.scars ?? []}
+            maxScars={config.maxScars ?? 3}
+            onChange={scars => update({ scars })}
+          />
+        </>
+      )}
+
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+
+      {config.hasEquipment && (
+        <>
+          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+          <EquipmentSection
+            equipment={character.equipment ?? []}
+            totalSlots={config.equipmentSlots ?? 6}
+            onChange={equipment => update({ equipment })}
+          />
+        </>
+      )}
+
+      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <RefreshSection
         refresh={character.refresh}

@@ -50,7 +50,7 @@ export default function SystemSelector({ selected, onSelect }: SystemSelectorPro
                     </div>
                   </div>
                 </div>
-                {isSelected && <Badge variant="indigo">✓ Выбрано</Badge>}
+                {isSelected && <Badge variant="accent">✓ Выбрано</Badge>}
               </div>
             </Card>
           )

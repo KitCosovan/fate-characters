@@ -1,5 +1,4 @@
 import type { EquipmentSlot } from '../../types'
-import { generateId } from '../../utils'
 import { SectionTitle } from './AspectsSection'
 
 interface EquipmentSectionProps {
