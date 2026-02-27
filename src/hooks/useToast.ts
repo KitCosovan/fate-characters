@@ -1,20 +1,18 @@
 import { useState, useCallback } from 'react'
+import { generateId } from '../utils'
+import type { ToastItem } from '../components/ui/ToastNotifications'
 
-interface ToastState {
-  message: string
-  type: 'success' | 'error' | 'info'
-}
+export function useToast() {
+  const [toasts, setToasts] = useState<ToastItem[]>([])
 
-export const useToast = () => {
-  const [toast, setToast] = useState<ToastState | null>(null)
-
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type })
+  const showToast = useCallback((message: string, type: ToastItem['type'] = 'success') => {
+    const id = generateId()
+    setToasts(prev => [...prev, { id, message, type }])
   }, [])
 
-  const hideToast = useCallback(() => {
-    setToast(null)
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  return { toast, showToast, hideToast }
+  return { toasts, showToast, removeToast }
 }

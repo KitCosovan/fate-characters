@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCharacterStore } from '../store/characterStore'
-import { Button, Card, Badge, Modal, Toast } from '../components/ui'
+import { Button, Card, Badge, Modal } from '../components/ui'
 import { exportAllCharacters, importCharacterFromFile, importAllFromFile, decodeCharacterFromUrl } from '../utils'
 import { useToast } from '../hooks/useToast'
 import { generateId } from '../utils'
 import type { Character } from '../types'
+import SearchBar from '../components/ui/SearchBar'
+import FilterPanel from '../components/ui/FilterPanel'
+import EmptyState from '../components/ui/EmptyState'
+import ToastNotifications from '../components/ui/ToastNotifications'
 
 type Tab = 'characters' | 'npcs'
 
@@ -22,7 +26,9 @@ export default function HomePage() {
   const [showImportModal, setShowImportModal] = useState(false)
   const [pendingImport, setPendingImport] = useState<Character | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast, showToast, hideToast } = useToast()
+  const { toasts, showToast, removeToast } = useToast()
+  const [search, setSearch] = useState('')
+  const [systemFilter, setSystemFilter] = useState<string | null>(null)
 
   useEffect(() => {
     const shared = decodeCharacterFromUrl()
@@ -33,7 +39,17 @@ export default function HomePage() {
     }
   }, [])
 
-  const filtered = characters.filter(c => tab === 'npcs' ? c.isNpc : !c.isNpc)
+  const filtered = characters.filter(c => {
+    if (tab === 'npcs' ? !c.isNpc : c.isNpc) return false
+    if (systemFilter && c.systemId !== systemFilter) return false
+    if (search) {
+      const q = search.toLowerCase()
+      const inName = c.name.toLowerCase().includes(q)
+      const inAspects = c.aspects.some(a => a.value.toLowerCase().includes(q))
+      if (!inName && !inAspects) return false
+    }
+    return true
+  })
 
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -66,18 +82,12 @@ export default function HomePage() {
     <div className="fade-up">
 
       {/* Шапка */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 style={{
-            fontFamily: 'Cinzel, serif',
-            fontSize: '20px',
-            fontWeight: 700,
-            color: 'var(--text)',
-            margin: 0,
-          }}>
+          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             {tab === 'npcs' ? 'НПС' : 'Персонажи'}
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
             {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
           </p>
         </div>
@@ -95,12 +105,8 @@ export default function HomePage() {
 
       {/* Вкладки */}
       <div style={{
-        display: 'flex',
-        gap: '4px',
-        background: 'var(--surface)',
-        borderRadius: '12px',
-        padding: '4px',
-        marginBottom: '20px',
+        display: 'flex', gap: '4px', background: 'var(--surface)',
+        borderRadius: '12px', padding: '4px', marginBottom: '12px',
         border: '1px solid var(--border)',
       }}>
         {(['characters', 'npcs'] as Tab[]).map(t => (
@@ -108,18 +114,11 @@ export default function HomePage() {
             key={t}
             onClick={() => setTab(t)}
             style={{
-              flex: 1,
-              padding: '9px',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              fontFamily: 'DM Sans, sans-serif',
+              flex: 1, padding: '9px', borderRadius: '9px', border: 'none',
+              fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+              transition: 'all 0.15s ease', fontFamily: 'DM Sans, sans-serif',
               background: tab === t ? 'var(--surface-3)' : 'transparent',
               color: tab === t ? 'var(--text)' : 'var(--text-muted)',
-              letterSpacing: '0.02em',
             }}
           >
             {t === 'characters' ? '🧙 Персонажи' : '👤 НПС'}
@@ -127,47 +126,38 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Список */}
+      {/* Поиск и фильтр */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+        <SearchBar value={search} onChange={setSearch} />
+        <FilterPanel selected={systemFilter} onChange={setSystemFilter} />
+      </div>
+
+      {/* Список или пустой стейт */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '64px 0' }}>
-          <div style={{ fontSize: '48px', marginBottom: '12px' }}>{tab === 'npcs' ? '👤' : '🎭'}</div>
-          <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-dim)' }}>
-            {tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
-          </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
-            Нажми «Создать» чтобы начать
-          </p>
-        </div>
+        <EmptyState
+          icon={tab === 'npcs' ? '👤' : '🎭'}
+          title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
+          description={
+            search
+              ? `По запросу «${search}» ничего не найдено`
+              : 'Нажми «Создать» чтобы начать'
+          }
+          action={!search ? {
+            label: '+ Создать',
+            onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')
+          } : undefined}
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filtered.map((c, i) => (
-            <div
-              key={c.id}
-              className="fade-up"
-              style={{ animationDelay: `${i * 0.04}s` }}
-            >
+            <div key={c.id} className="fade-up" style={{ animationDelay: `${i * 0.04}s` }}>
               <Card onClick={() => navigate(`/character/${c.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <p style={{
-                        fontFamily: 'Cinzel, serif',
-                        fontSize: '16px',
-                        fontWeight: 700,
-                        color: 'var(--text)',
-                        margin: 0,
-                      }}>
-                        {c.name || 'Без имени'}
-                      </p>
-                    </div>
-                    <p style={{
-                      fontSize: '13px',
-                      color: 'var(--text-dim)',
-                      margin: 0,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
+                    <p style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>
+                      {c.name || 'Без имени'}
+                    </p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || 'Концепция не заполнена'}
                     </p>
                   </div>
@@ -182,6 +172,7 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Модалка импорта */}
       <Modal
         isOpen={showImportModal}
         onClose={() => { setShowImportModal(false); setPendingImport(null) }}
@@ -191,15 +182,17 @@ export default function HomePage() {
       >
         {pendingImport && (
           <div>
-            <p>Добавить <strong style={{ color: 'var(--text)' }}>{pendingImport.name || 'Без имени'}</strong>?</p>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <p style={{ margin: '0 0 4px' }}>
+              Добавить <strong style={{ color: 'var(--text)' }}>{pendingImport.name || 'Без имени'}</strong>?
+            </p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
               Система: {SYSTEM_LABELS[pendingImport.systemId] ?? pendingImport.systemId}
             </p>
           </div>
         )}
       </Modal>
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <ToastNotifications toasts={toasts} onRemove={removeToast} />
     </div>
   )
 }
