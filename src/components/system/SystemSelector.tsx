@@ -1,8 +1,6 @@
 import { systemsList } from '../../data'
-// Удали эти две строки:
-// import { fateCoreConfig } from '../../data/fateCore'
-// import { fateAcceleratedConfig } from '../../data/fateAccelerated'
-import { Card, Badge } from '../ui'
+import { Badge } from '../ui'
+import { SectionTitle } from '../character/AspectsSection'
 
 const systemDescriptions: Record<string, { icon: string; details: string[] }> = {
   'fate-core': {
@@ -26,33 +24,56 @@ interface SystemSelectorProps {
 
 export default function SystemSelector({ selected, onSelect }: SystemSelectorProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <h2 className="text-lg font-bold text-gray-800">Система</h2>
-      <div className="flex flex-col gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <SectionTitle>Система</SectionTitle>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {systemsList.map(system => {
           const meta = systemDescriptions[system.id]
           const isSelected = selected === system.id
           return (
-            <Card
+            <div
               key={system.id}
               onClick={() => onSelect(system.id)}
-              className={`transition-all ${isSelected ? 'ring-2 ring-indigo-500 border-indigo-200' : ''}`}
+              style={{
+                background: isSelected ? 'var(--accent-glow)' : 'var(--surface)',
+                border: isSelected ? '1px solid var(--border-accent)' : '1px solid var(--border)',
+                borderRadius: '14px',
+                padding: '14px 16px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+              onMouseEnter={e => {
+                if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-accent)'
+              }}
+              onMouseLeave={e => {
+                if (!isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+              }}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{meta?.icon}</span>
-                  <div>
-                    <p className="font-semibold text-gray-800">{system.name}</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {meta?.details.map(d => (
-                        <Badge key={d} variant="default">{d}</Badge>
-                      ))}
-                    </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>{meta?.icon}</span>
+                <div>
+                  <p style={{
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    color: isSelected ? 'var(--accent)' : 'var(--text)',
+                    margin: 0,
+                    marginBottom: '6px',
+                  }}>
+                    {system.name}
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {meta?.details.map(d => (
+                      <Badge key={d} variant="default">{d}</Badge>
+                    ))}
                   </div>
                 </div>
-                {isSelected && <Badge variant="accent">✓ Выбрано</Badge>}
               </div>
-            </Card>
+              {isSelected && <Badge variant="accent">✓ Выбрано</Badge>}
+            </div>
           )
         })}
       </div>

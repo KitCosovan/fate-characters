@@ -1,42 +1,15 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
-/* ===== ТЁМНАЯ ТЕМА (по умолчанию) ===== */
+/* Переменные — начальные значения (перезаписываются через useTheme) */
 :root {
-  --bg: #0d0d10;
-  --surface: #16161c;
-  --surface-2: #1e1e26;
-  --surface-3: #26262f;
-  --accent: #e8a020;
-  --accent-dim: #c47d10;
-  --accent-glow: rgba(232, 160, 32, 0.15);
-  --text: #f0ede8;
-  --text-dim: #9490a0;
-  --text-muted: #5a5668;
-  --danger: #e84050;
-  --danger-dim: #c02030;
-  --success: #40c078;
-  --border: rgba(255,255,255,0.06);
-  --border-accent: rgba(232,160,32,0.3);
-
-  /* Инпуты — золотая тема */
-  --input-bg: #1a1710;
-  --input-border: rgba(232, 160, 32, 0.25);
-  --input-border-focus: rgba(232, 160, 32, 0.8);
-  --input-text: #f0ede8;
-  --input-placeholder: rgba(232, 160, 32, 0.3);
-  --input-shadow-focus: 0 0 0 3px rgba(232, 160, 32, 0.1), inset 0 1px 0 rgba(232,160,32,0.05);
-}
-
-/* ===== СВЕТЛАЯ ТЕМА ===== */
-[data-theme="light"] {
-  --bg: #f5f3ef;
+  --bg: #f7f5f2;
   --surface: #ffffff;
   --surface-2: #f0ede8;
   --surface-3: #e8e4de;
   --accent: #b8700a;
   --accent-dim: #8f550a;
-  --accent-glow: rgba(184, 112, 10, 0.12);
+  --accent-glow: rgba(184,112,10,0.12);
   --text: #1a1714;
   --text-dim: #5a5248;
   --text-muted: #9a9088;
@@ -45,14 +18,12 @@
   --success: #1a8040;
   --border: rgba(0,0,0,0.08);
   --border-accent: rgba(184,112,10,0.3);
-
-  /* Инпуты — светлая тема */
   --input-bg: #ffffff;
-  --input-border: rgba(0,0,0,0.12);
-  --input-border-focus: var(--accent);
+  --input-border: rgba(0,0,0,0.14);
+  --input-border-focus: #b8700a;
   --input-text: #1a1714;
   --input-placeholder: #b0a898;
-  --input-shadow-focus: 0 0 0 3px rgba(184, 112, 10, 0.12);
+  --input-shadow-focus: 0 0 0 3px rgba(184,112,10,0.12);
 }
 
 * { box-sizing: border-box; }
@@ -62,19 +33,12 @@ html, body {
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 2px; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.fade-up { animation: fadeUp 0.3s ease both; }
 
 input::placeholder,
 textarea::placeholder {
@@ -91,7 +55,7 @@ select {
   font-size: 13px;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 select:focus {
@@ -103,3 +67,16 @@ select option {
   background: var(--surface-2);
   color: var(--input-text);
 }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fade-up { animation: fadeUp 0.25s ease both; }
+.fade-in { animation: fadeIn 0.2s ease both; }

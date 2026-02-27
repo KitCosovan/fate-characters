@@ -1,25 +1,29 @@
-const RATING_LABELS: Record<number, string> = {
-  4: 'Великолепный',
-  3: 'Хороший',
-  2: 'Неплохой',
-  1: 'Средний',
-}
-
-const RATING_COLORS: Record<number, string> = {
-  4: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  3: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-  2: 'bg-blue-100 text-blue-800 border-blue-300',
-  1: 'bg-gray-100 text-gray-700 border-gray-300',
-}
-
 interface SkillRatingBadgeProps {
   rating: number
 }
 
+const RATING_LABELS: Record<number, string> = {
+  4: '+4 Великолепный',
+  3: '+3 Хороший',
+  2: '+2 Неплохой',
+  1: '+1 Средний',
+  0: '+0 Посредственный',
+}
+
 export default function SkillRatingBadge({ rating }: SkillRatingBadgeProps) {
   return (
-    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${RATING_COLORS[rating] ?? 'bg-gray-100'}`}>
-      +{rating} {RATING_LABELS[rating] ?? ''}
+    <span style={{
+      display: 'inline-block',
+      padding: '4px 12px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: 700,
+      letterSpacing: '0.03em',
+      background: 'var(--accent-glow)',
+      color: 'var(--accent)',
+      border: '1px solid var(--border-accent)',
+    }}>
+      {RATING_LABELS[rating] ?? `+${rating}`}
     </span>
   )
 }

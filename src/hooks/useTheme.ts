@@ -1,18 +1,27 @@
 import { useState, useEffect } from 'react'
-
-type Theme = 'dark' | 'light'
+import { themes, getTheme, type Theme } from '../styles/themes'
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem('theme') as Theme) ?? 'dark'
-  })
+  const [themeId, setThemeId] = useState<string>(() =>
+    localStorage.getItem('theme') ?? 'light'
+  )
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : '')
-    localStorage.setItem('theme', theme)
-  }, [theme])
+    const theme = getTheme(themeId)
+    const root = document.documentElement
 
-  const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+    // Применяем все CSS переменные из темы
+    Object.entries(theme.colors).forEach(([key, value]) => {
+      root.style.setProperty(`--${key}`, value)
+    })
 
-  return { theme, toggle }
+    localStorage.setItem('theme', themeId)
+  }, [themeId])
+
+  return {
+    themeId,
+    theme: getTheme(themeId),
+    themes,
+    setTheme: setThemeId,
+  }
 }
