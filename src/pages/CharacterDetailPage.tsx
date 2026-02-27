@@ -1,11 +1,19 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useCharacterStore } from '../store/characterStore'
-import { Button, Modal, Toast } from '../components/ui'
+import { Button, Modal } from '../components/ui'
 import CharacterSheet from '../components/character/CharacterSheet'
-import { exportCharacter, encodeCharacterToUrl } from '../utils'
+import ShareModal from '../components/ui/ShareModal'
+import ToastNotifications from '../components/ui/ToastNotifications'
+import { exportCharacter } from '../utils'
 import { useToast } from '../hooks/useToast'
 import type { Character } from '../types'
+
+const SYSTEM_LABELS: Record<string, string> = {
+  'fate-core': 'Fate Core',
+  'fate-accelerated': 'Fate Accelerated',
+  'book-of-ashes': 'Книга Пепла',
+}
 
 export default function CharacterDetailPage() {
   const { id } = useParams()
@@ -14,14 +22,13 @@ export default function CharacterDetailPage() {
   const character = getById(id ?? '')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
-  const [shareUrl, setShareUrl] = useState('')
-  const { toast, showToast, hideToast } = useToast()
+  const { toasts, showToast, removeToast } = useToast()
 
   if (!character) {
     return (
-      <div className="text-center py-16 text-gray-400">
-        <p className="text-4xl mb-3">🌀</p>
-        <p className="text-lg font-medium">Персонаж не найден</p>
+      <div style={{ textAlign: 'center', padding: '64px 0' }}>
+        <p style={{ fontSize: '48px', marginBottom: '12px' }}>🌀</p>
+        <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>Персонаж не найден</p>
         <Button variant="ghost" onClick={() => navigate('/')}>На главную</Button>
       </div>
     )
@@ -41,25 +48,12 @@ export default function CharacterDetailPage() {
     showToast('Персонаж сохранён как JSON')
   }
 
-  const handleShare = () => {
-    const url = encodeCharacterToUrl(character)
-    setShareUrl(url)
-    setShowShareModal(true)
-  }
-
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(shareUrl)
-    showToast('Ссылка скопирована!')
-  }
-
-  const systemLabel = character.systemId === 'fate-accelerated' ? 'Fate Accelerated' : 'Fate Core'
-
   return (
-    <div className="flex flex-col gap-6 pb-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '32px' }}>
 
       {/* Шапка */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={() => navigate('/')}
             style={{
@@ -83,31 +77,24 @@ export default function CharacterDetailPage() {
               fontWeight: 700,
               color: 'var(--text)',
               margin: 0,
-            }}>{character.name}</h1>
-            <p className="text-xs text-gray-400">{character.isNpc ? 'НПС' : 'Персонаж'} · {systemLabel}</p>
+            }}>
+              {character.name}
+            </h1>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+              {character.isNpc ? 'НПС' : 'Персонаж'} · {SYSTEM_LABELS[character.systemId] ?? character.systemId}
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
+
+        <div style={{ display: 'flex', gap: '8px' }}>
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => navigate(
-              character.isNpc
-                ? `/npc/${character.id}/edit`
-                : `/character/${character.id}/edit`
-            )}
-          >
-            ✏️
-          </Button>
-          <Button variant="secondary" size="sm" onClick={handleExport}>
-            💾
-          </Button>
-          <Button variant="secondary" size="sm" onClick={handleShare}>
-            🔗
-          </Button>
-          <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
-            🗑
-          </Button>
+            onClick={() => navigate(character.isNpc ? `/npc/${character.id}/edit` : `/character/${character.id}/edit`)}
+          >✏️</Button>
+          <Button variant="secondary" size="sm" onClick={handleExport}>💾</Button>
+          <Button variant="secondary" size="sm" onClick={() => setShowShareModal(true)}>🔗</Button>
+          <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>🗑</Button>
         </div>
       </div>
 
@@ -127,28 +114,19 @@ export default function CharacterDetailPage() {
         confirmVariant="danger"
         onConfirm={handleDelete}
       >
-        Персонаж <strong>{character.name}</strong> будет удалён безвозвратно.
+        <p style={{ margin: 0 }}>
+          Персонаж <strong style={{ color: 'var(--text)' }}>{character.name}</strong> будет удалён безвозвратно.
+        </p>
       </Modal>
 
       {/* Модалка поделиться */}
-      <Modal
+      <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title="Поделиться персонажем"
-        confirmLabel="Скопировать ссылку"
-        onConfirm={handleCopyUrl}
-      >
-        <div className="flex flex-col gap-3">
-          <p>Отправь эту ссылку другу — он сможет импортировать персонажа одним нажатием.</p>
-          <div className="bg-gray-100 rounded-lg p-2 text-xs break-all text-gray-600 max-h-20 overflow-y-auto">
-            {shareUrl}
-          </div>
-        </div>
-      </Modal>
+        character={character}
+      />
 
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-
-    </div >
+      <ToastNotifications toasts={toasts} onRemove={removeToast} />
+    </div>
   )
 }
