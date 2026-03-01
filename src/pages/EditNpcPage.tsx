@@ -12,6 +12,9 @@ import StressSection from '../components/character/StressSection'
 import RefreshSection from '../components/character/RefreshSection'
 import ScarsSection from '../components/character/ScarsSection'
 import EquipmentSection from '../components/character/EquipmentSection'
+import NotesSection from '../components/character/NotesSection'
+
+const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
 export default function EditNpcPage() {
     const { id } = useParams()
@@ -41,8 +44,6 @@ export default function EditNpcPage() {
         updateCharacter(character)
         navigate(`/character/${character.id}`)
     }
-
-    const Divider = () => <div className="w-full h-px bg-gray-200" />
 
     return (
         <div className="flex flex-col gap-6 pb-8">
@@ -149,6 +150,12 @@ export default function EditNpcPage() {
                 currentFatePoints={character.currentFatePoints}
                 onRefreshChange={refresh => update({ refresh })}
                 onFatePointsChange={currentFatePoints => update({ currentFatePoints })}
+            />
+
+            <Divider />
+            <NotesSection
+                notes={character.notes ?? ''}
+                onChange={notes => update({ notes })}
             />
 
             <Button size="lg" onClick={handleSave} className="w-full mt-2">

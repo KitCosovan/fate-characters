@@ -12,6 +12,9 @@ import ApproachesSection from '../components/character/ApproachesSection'
 import StuntsSection from '../components/character/StuntsSection'
 import StressSection from '../components/character/StressSection'
 import RefreshSection from '../components/character/RefreshSection'
+import NotesSection from '../components/character/NotesSection'
+
+const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
 export default function CreateNpcPage() {
   const navigate = useNavigate()
@@ -157,6 +160,12 @@ export default function CreateNpcPage() {
         currentFatePoints={character.currentFatePoints}
         onRefreshChange={refresh => update({ refresh })}
         onFatePointsChange={currentFatePoints => update({ currentFatePoints })}
+      />
+
+      <Divider />
+      <NotesSection
+        notes={character.notes ?? ''}
+        onChange={notes => update({ notes })}
       />
 
       <Button size="lg" onClick={handleSave} className="w-full mt-2">

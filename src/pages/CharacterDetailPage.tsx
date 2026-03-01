@@ -38,6 +38,10 @@ export default function CharacterDetailPage() {
     updateCharacter(updated)
   }
 
+  const handleNotesChange = (notes: string) => {
+    updateCharacter({ ...character, notes })
+  }
+
   const handleDelete = () => {
     removeCharacter(character.id)
     navigate('/')
@@ -103,6 +107,7 @@ export default function CharacterDetailPage() {
         character={character}
         onStressChange={handleUpdate}
         onConsequenceChange={handleUpdate}
+        onNotesChange={handleNotesChange}
       />
 
       {/* Модалка удаления */}

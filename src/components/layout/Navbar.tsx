@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
+import { Link, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
   const { themeId, theme, themes, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -43,6 +44,24 @@ export default function Navbar() {
           }}>
             FATE CHARACTERS
           </span>
+        </Link>
+
+        <Link
+          to="/encyclopedia"
+          style={{
+            textDecoration: 'none',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: location.pathname === '/encyclopedia' ? 'var(--accent)' : 'var(--text-muted)',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            background: location.pathname === '/encyclopedia' ? 'var(--accent-glow)' : 'transparent',
+            border: `1px solid ${location.pathname === '/encyclopedia' ? 'var(--border-accent)' : 'transparent'}`,
+            transition: 'all 0.15s',
+            fontFamily: 'DM Sans, sans-serif',
+          }}
+        >
+          📖 Энциклопедия
         </Link>
 
         {/* Переключатель тем */}

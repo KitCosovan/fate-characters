@@ -4,16 +4,18 @@ import { SectionTitle } from './AspectsSection'
 import SkillRatingBadge from './SkillRatingBadge'
 import StressTrack from './StressTrack'
 import ConsequenceSlot from './ConsequenceSlot'
+import NotesSection from './NotesSection'
 
 interface CharacterSheetProps {
   character: Character
   onStressChange?: (character: Character) => void
   onConsequenceChange?: (character: Character) => void
+  onNotesChange?: (notes: string) => void
 }
 
 const RATING_ORDER = [4, 3, 2, 1, 0]
 
-export default function CharacterSheet({ character, onStressChange, onConsequenceChange }: CharacterSheetProps) {
+export default function CharacterSheet({ character, onStressChange, onConsequenceChange, onNotesChange }: CharacterSheetProps) {
   const config = getSystemConfig(character.systemId)
   const isApproaches = config.skillMode === 'approaches'
 
@@ -194,6 +196,38 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
           </div>
         </div>
       </section>
+
+      {onNotesChange ? (
+        <>
+          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+          <section>
+            <NotesSection
+              notes={character.notes ?? ''}
+              onChange={onNotesChange}
+            />
+          </section>
+        </>
+      ) : character.notes ? (
+        <>
+          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+          <section>
+            <SectionTitle>Заметки</SectionTitle>
+            <p style={{
+              fontSize: '14px',
+              color: 'var(--text-dim)',
+              lineHeight: 1.6,
+              margin: 0,
+              whiteSpace: 'pre-wrap',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              borderRadius: '12px',
+              padding: '12px 14px',
+            }}>
+              {character.notes}
+            </p>
+          </section>
+        </>
+      ) : null}
 
     </div>
   )

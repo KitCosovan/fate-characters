@@ -117,6 +117,7 @@ export interface Character {
   isNpc: boolean
   createdAt: string
   updatedAt: string
+  notes?: string
 }
 
 export interface NpcTemplate {

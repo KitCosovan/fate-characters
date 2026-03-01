@@ -12,6 +12,9 @@ import StressSection from '../components/character/StressSection'
 import RefreshSection from '../components/character/RefreshSection'
 import ScarsSection from '../components/character/ScarsSection'
 import EquipmentSection from '../components/character/EquipmentSection'
+import NotesSection from '../components/character/NotesSection'
+
+const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
 export default function EditCharacterPage() {
   const { id } = useParams()
@@ -43,10 +46,10 @@ export default function EditCharacterPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-8">
-      <div className="flex items-center gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(`/character/${character.id}`)}
           style={{
             background: 'var(--surface-2)',
             border: '1px solid var(--border)',
@@ -61,13 +64,12 @@ export default function EditCharacterPage() {
             justifyContent: 'center',
           }}
         >←</button>
-        <h1 style={{
-          fontFamily: 'Cinzel, serif',
-          fontSize: '20px',
-          fontWeight: 700,
-          color: 'var(--text)',
-          margin: 0,
-        }}>Редактировать</h1>
+        <div>
+          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+            Редактировать
+          </h1>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{config.name}</p>
+        </div>
       </div>
 
       <Input
@@ -75,16 +77,14 @@ export default function EditCharacterPage() {
         value={character.name}
         onChange={e => update({ name: e.target.value })}
       />
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+      <Divider />
 
       <AspectsSection
         slots={config.aspectSlots}
         aspects={character.aspects}
         onChange={aspects => update({ aspects })}
       />
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+      <Divider />
 
       {config.skillMode === 'approaches' ? (
         <ApproachesSection
@@ -97,18 +97,17 @@ export default function EditCharacterPage() {
           skills={config.skills}
           selected={character.skills}
           onChange={skills => update({ skills })}
+          pyramidLevels={config.pyramidLevels}
         />
       )}
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+      <Divider />
 
       <StuntsSection
         stunts={character.stunts}
         maxStunts={config.maxStunts}
         onChange={stunts => update({ stunts })}
       />
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+      <Divider />
 
       <StressSection
         stressTracks={character.stressTracks}
@@ -117,34 +116,29 @@ export default function EditCharacterPage() {
         onStressChange={stressTracks => update({ stressTracks })}
         onConsequenceChange={consequences => update({ consequences })}
       />
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
+      <Divider />
 
       {config.hasScars && (
         <>
-          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
           <ScarsSection
             scars={character.scars ?? []}
             maxScars={config.maxScars ?? 3}
             onChange={scars => update({ scars })}
           />
+          <Divider />
         </>
       )}
 
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
-
       {config.hasEquipment && (
         <>
-          <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
           <EquipmentSection
             equipment={character.equipment ?? []}
             totalSlots={config.equipmentSlots ?? 6}
             onChange={equipment => update({ equipment })}
           />
+          <Divider />
         </>
       )}
-
-      <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
       <RefreshSection
         refresh={character.refresh}
@@ -152,8 +146,14 @@ export default function EditCharacterPage() {
         onRefreshChange={refresh => update({ refresh })}
         onFatePointsChange={currentFatePoints => update({ currentFatePoints })}
       />
+      <Divider />
 
-      <Button size="lg" onClick={handleSave} className="w-full mt-2">
+      <NotesSection
+        notes={character.notes ?? ''}
+        onChange={notes => update({ notes })}
+      />
+
+      <Button size="lg" onClick={handleSave}>
         Сохранить изменения
       </Button>
     </div>

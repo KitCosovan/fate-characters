@@ -7,24 +7,59 @@ interface StuntCardProps {
   onChange: (stunt: Stunt) => void
 }
 
+const inputStyle: React.CSSProperties = {
+  background: 'var(--input-bg)',
+  border: '1px solid var(--input-border)',
+  borderRadius: '10px',
+  padding: '8px 12px',
+  fontSize: '14px',
+  color: 'var(--input-text)',
+  outline: 'none',
+  fontFamily: 'DM Sans, sans-serif',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+  width: '100%',
+}
+
+const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  e.target.style.borderColor = 'var(--input-border-focus)'
+  e.target.style.boxShadow = 'var(--input-shadow-focus)'
+}
+
+const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  e.target.style.borderColor = 'var(--input-border)'
+  e.target.style.boxShadow = 'none'
+}
+
 export default function StuntCard({ stunt, onRemove, onChange }: StuntCardProps) {
   return (
-    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 bg-gray-50">
-      <div className="flex items-center gap-2">
+    <div style={{
+      background: 'var(--surface-2)',
+      border: '1px solid var(--border)',
+      borderRadius: '14px',
+      padding: '12px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <input
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+          style={{ ...inputStyle }}
           placeholder="Название трюка"
           value={stunt.name}
           onChange={e => onChange({ ...stunt, name: e.target.value })}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
         />
         <Button variant="danger" size="sm" onClick={onRemove}>✕</Button>
       </div>
       <textarea
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-indigo-400"
+        style={{ ...inputStyle, resize: 'none' }}
         placeholder="Описание: что даёт этот трюк?"
         rows={2}
         value={stunt.description}
         onChange={e => onChange({ ...stunt, description: e.target.value })}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       />
     </div>
   )

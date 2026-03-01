@@ -17,14 +17,13 @@ export default function StuntsSection({ stunts, maxStunts, onChange }: StuntsSec
   }
 
   const removeStunt = (id: string) => onChange(stunts.filter(s => s.id !== id))
-
   const updateStunt = (updated: Stunt) => onChange(stunts.map(s => s.id === updated.id ? updated : s))
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <SectionTitle>Трюки</SectionTitle>
-        <span className="text-sm text-gray-400">{stunts.length} / {maxStunts}</span>
+        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{stunts.length} / {maxStunts}</span>
       </div>
       {stunts.map(stunt => (
         <StuntCard
