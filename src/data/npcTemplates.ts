@@ -3,7 +3,7 @@ import type { NpcTemplate } from '../types'
 export const npcTemplates: NpcTemplate[] = [
   {
     id: 'fighter',
-    name: '⚔️ Боец',
+    name: 'Боец',
     description: 'Крепкий противник в ближнем бою',
     character: {
       systemId: 'fate-core',
@@ -47,7 +47,7 @@ export const npcTemplates: NpcTemplate[] = [
   },
   {
     id: 'socialite',
-    name: '🗣️ Переговорщик',
+    name: 'Переговорщик',
     description: 'Мастер слова и манипуляций',
     character: {
       systemId: 'fate-core',
@@ -92,7 +92,7 @@ export const npcTemplates: NpcTemplate[] = [
   },
   {
     id: 'mook',
-    name: '👤 Мелкий враг',
+    name: 'Мелкий враг',
     description: 'Слабый противник, массовка',
     character: {
       systemId: 'fate-core',
@@ -129,7 +129,7 @@ export const npcTemplates: NpcTemplate[] = [
   },
   {
     id: 'boss',
-    name: '💀 Босс',
+    name: 'Босс',
     description: 'Сильный противник, главный злодей',
     character: {
       systemId: 'fate-core',

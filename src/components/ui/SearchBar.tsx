@@ -1,3 +1,5 @@
+import { IconSearch } from './FateIcons'
+
 interface SearchBarProps {
   value: string
   onChange: (value: string) => void
@@ -7,16 +9,9 @@ interface SearchBarProps {
 export default function SearchBar({ value, onChange, placeholder = 'Поиск по имени или аспектам...' }: SearchBarProps) {
   return (
     <div style={{ position: 'relative' }}>
-      <span style={{
-        position: 'absolute',
-        left: '12px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        fontSize: '15px',
-        pointerEvents: 'none',
-      }}>
-        🔍
-      </span>
+      <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', width: 20, height: 20, display: 'flex', alignItems: 'center' }}>
+        <IconSearch size={20} />
+      </div>
       <input
         value={value}
         onChange={e => onChange(e.target.value)}

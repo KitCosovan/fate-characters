@@ -9,6 +9,7 @@ import { exportCharacter, getSystemConfig } from '../utils'
 import { useToast } from '../hooks/useToast'
 import type { Character } from '../types'
 import SkillAdvancement from '../components/character/SkillAdvancement'
+import { IconEdit, IconSave, IconShare, IconDelete, IconBack, IconAdvancement, IconNotFound } from '../components/ui/FateIcons'
 
 const SYSTEM_LABELS: Record<string, string> = {
   'fate-core': 'Fate Core',
@@ -30,7 +31,7 @@ export default function CharacterDetailPage() {
   if (!character) {
     return (
       <div style={{ textAlign: 'center', padding: '64px 0' }}>
-        <p style={{ fontSize: '48px', marginBottom: '12px' }}>🌀</p>
+        <p style={{ fontSize: '48px', marginBottom: '12px' }}><IconNotFound size={64} /></p>
         <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>Персонаж не найден</p>
         <Button variant="ghost" onClick={() => navigate('/')}>На главную</Button>
       </div>
@@ -58,7 +59,7 @@ export default function CharacterDetailPage() {
               borderRadius: '8px', color: 'var(--text-dim)', width: '32px', height: '32px',
               cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          >←</button>
+          ><IconBack size={20} /></button>
           <div>
             <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
               {character.name}
@@ -69,10 +70,10 @@ export default function CharacterDetailPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button variant="secondary" size="sm" onClick={() => navigate(character.isNpc ? `/npc/${character.id}/edit` : `/character/${character.id}/edit`)}>✏️</Button>
-          <Button variant="secondary" size="sm" onClick={handleExport}>💾</Button>
-          <Button variant="secondary" size="sm" onClick={() => setShowShareModal(true)}>🔗</Button>
-          <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>🗑</Button>
+          <Button variant="secondary" size="sm" onClick={() => navigate(character.isNpc ? `/npc/${character.id}/edit` : `/character/${character.id}/edit`)}><IconEdit size={18} /></Button>
+          <Button variant="secondary" size="sm" onClick={handleExport}><IconSave size={18} /></Button>
+          <Button variant="secondary" size="sm" onClick={() => setShowShareModal(true)}><IconShare size={18} /></Button>
+          <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}><IconDelete size={18} /></Button>
         </div>
       </div>
 
@@ -99,7 +100,7 @@ export default function CharacterDetailPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             }}
           >
-            <span>⬆️</span>
+            <span><IconAdvancement size={18} /></span>
             {showAdvancement ? 'Скрыть развитие' : 'Развитие навыков'}
           </button>
 

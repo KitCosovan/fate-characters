@@ -10,6 +10,7 @@ import SearchBar from '../components/ui/SearchBar'
 import FilterPanel from '../components/ui/FilterPanel'
 import EmptyState from '../components/ui/EmptyState'
 import ToastNotifications from '../components/ui/ToastNotifications'
+import { IconImport, IconSave, IconCharacter, IconNpc } from '../components/ui/FateIcons'
 
 type Tab = 'characters' | 'npcs'
 
@@ -93,9 +94,9 @@ export default function HomePage() {
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleFileImport} />
-          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>📥</Button>
+          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}><IconImport size={18} /></Button>
           {characters.length > 0 && (
-            <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}>💾</Button>
+            <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}><IconSave size={18} /></Button>
           )}
           <Button size="sm" onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
             + Создать
@@ -119,9 +120,13 @@ export default function HomePage() {
               transition: 'all 0.15s ease', fontFamily: 'DM Sans, sans-serif',
               background: tab === t ? 'var(--surface-3)' : 'transparent',
               color: tab === t ? 'var(--text)' : 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             }}
           >
-            {t === 'characters' ? '🧙 Персонажи' : '👤 НПС'}
+            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {t === 'characters' ? <IconCharacter size={16} /> : <IconNpc size={16} />}
+            </div>
+            {t === 'characters' ? 'Персонажи' : 'НПС'}
           </button>
         ))}
       </div>
@@ -135,13 +140,9 @@ export default function HomePage() {
       {/* Список или пустой стейт */}
       {filtered.length === 0 ? (
         <EmptyState
-          icon={tab === 'npcs' ? '👤' : '🎭'}
+          icon={tab === 'npcs' ? <IconNpc size={64} /> : <IconCharacter size={64} />}
           title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
-          description={
-            search
-              ? `По запросу «${search}» ничего не найдено`
-              : 'Нажми «Создать» чтобы начать'
-          }
+          description={search ? `По запросу «${search}» ничего не найдено` : 'Нажми «Создать» чтобы начать'}
           action={!search ? {
             label: '+ Создать',
             onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')

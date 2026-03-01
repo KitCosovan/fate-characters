@@ -1,30 +1,17 @@
 interface EmptyStateProps {
-  icon?: string
+  icon?: React.ReactNode  // ← было string
   title: string
   description?: string
-  action?: {
-    label: string
-    onClick: () => void
-  }
+  action?: { label: string; onClick: () => void }
 }
 
 export default function EmptyState({ icon = '🎭', title, description, action }: EmptyStateProps) {
   return (
     <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '64px 24px',
-      textAlign: 'center',
-      gap: '12px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', padding: '64px 24px', textAlign: 'center', gap: '12px',
     }}>
-      <div style={{
-        fontSize: '52px',
-        lineHeight: 1,
-        marginBottom: '4px',
-        filter: 'grayscale(0.3)',
-      }}>
+      <div style={{ width: 64, height: 64, marginBottom: '4px' }}>
         {icon}
       </div>
       <p style={{
