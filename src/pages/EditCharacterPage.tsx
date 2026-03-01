@@ -13,6 +13,7 @@ import RefreshSection from '../components/character/RefreshSection'
 import ScarsSection from '../components/character/ScarsSection'
 import EquipmentSection from '../components/character/EquipmentSection'
 import NotesSection from '../components/character/NotesSection'
+import SkillAdvancement from '../components/character/SkillAdvancement'
 
 const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
@@ -100,6 +101,14 @@ export default function EditCharacterPage() {
           pyramidLevels={config.pyramidLevels}
         />
       )}
+
+      <Divider />
+      <SkillAdvancement
+        skills={config.skills}
+        selected={character.skills}
+        onChange={skills => update({ skills })}
+      />
+
       <Divider />
 
       <StuntsSection

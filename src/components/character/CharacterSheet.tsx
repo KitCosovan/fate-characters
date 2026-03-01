@@ -13,11 +13,12 @@ interface CharacterSheetProps {
   onNotesChange?: (notes: string) => void
 }
 
-const RATING_ORDER = [4, 3, 2, 1, 0]
-
 export default function CharacterSheet({ character, onStressChange, onConsequenceChange, onNotesChange }: CharacterSheetProps) {
   const config = getSystemConfig(character.systemId)
   const isApproaches = config.skillMode === 'approaches'
+
+  const maxRating = Math.max(...character.skills.map(s => s.rating), 4)
+  const RATING_ORDER = Array.from({ length: maxRating }, (_, i) => maxRating - i)
 
   const skillsByRating = RATING_ORDER.map(rating => ({
     rating,
