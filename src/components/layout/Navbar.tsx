@@ -56,6 +56,7 @@ export default function Navbar() {
             transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}
+          className="hide-on-mobile"
         >
           <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
             <IconBook size={16} />

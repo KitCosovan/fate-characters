@@ -80,3 +80,9 @@ select option {
 
 .fade-up { animation: fadeUp 0.25s ease both; }
 .fade-in { animation: fadeIn 0.2s ease both; }
+
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
