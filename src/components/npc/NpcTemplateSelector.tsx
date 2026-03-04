@@ -4,7 +4,6 @@ import { npcTemplates } from '../../data/npcTemplates'
 import { getCustomTemplates, deleteCustomTemplate } from '../../data/customTemplates'
 import type { NpcTemplate } from '../../types'
 import type { CustomNpcTemplate } from '../../data/customTemplates'
-import { SectionTitle } from '../character/AspectsSection'
 import {
   IconSwords, IconSpeech, IconDagger, IconSkull,
   IconBook, IconMasks, IconFire, IconCheck, IconDelete, IconSearch,
