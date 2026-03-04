@@ -11,46 +11,73 @@ const SCAR_LABELS = ['Шрам 1', 'Шрам 2', 'Шрам 3']
 
 export default function ScarsSection({ scars, maxScars, onChange }: ScarsSectionProps) {
   const updateScar = (index: number, value: string) => {
-    const updated = scars.map((s, i) => i === index ? { ...s, value } : s)
-    onChange(updated)
+    onChange(scars.map((s, i) => i === index ? { ...s, value } : s))
   }
 
   const filledCount = scars.filter(s => s.value.trim()).length
 
+  const inputStyle = {
+    background: 'var(--input-bg)',
+    border: '1px solid var(--input-border)',
+    borderRadius: '8px',
+    padding: '8px 12px',
+    fontSize: '14px',
+    color: 'var(--input-text)',
+    outline: 'none',
+    width: '100%',
+    fontFamily: 'DM Sans, sans-serif',
+  }
+
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <SectionTitle>Шрамы</SectionTitle>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">{filledCount} / {maxScars}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{filledCount} / {maxScars}</span>
           {filledCount >= maxScars && (
-            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+            <span style={{
+              fontSize: '11px', background: 'var(--accent-glow)', color: 'var(--accent)',
+              border: '1px solid var(--border-accent)', padding: '2px 8px', borderRadius: '20px', fontWeight: 600,
+            }}>
               ⚠️ Четвёртый — конец
             </span>
           )}
         </div>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+      <div style={{
+        background: 'var(--accent-glow)', border: '1px solid var(--border-accent)',
+        borderRadius: '12px', padding: '12px', fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.5,
+      }}>
         Шрам заменяет аспект персонажа навсегда. При 4-м шраме персонаж становится Тьмой.
         Шрамы игнорируют правило одного бонуса — каждый даёт +2 независимо.
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {Array.from({ length: maxScars }).map((_, i) => {
           const scar = scars[i]
+          const filled = Boolean(scar?.value)
           return (
-            <div key={i} className={`rounded-xl border p-3 flex flex-col gap-2 transition-colors
-              ${scar?.value ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full
-                  ${scar?.value ? 'bg-red-200 text-red-800' : 'bg-gray-200 text-gray-500'}`}>
-                  {SCAR_LABELS[i]}
-                </span>
-              </div>
+            <div key={i} style={{
+              background: 'var(--surface)',
+              border: `1px solid ${filled ? 'var(--border-accent)' : 'var(--border)'}`,
+              borderRadius: '12px', padding: '12px',
+              display: 'flex', flexDirection: 'column', gap: '8px',
+              transition: 'border-color 0.15s',
+            }}>
+              <span style={{
+                fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
+                background: filled ? 'var(--accent-glow)' : 'var(--surface-2)',
+                color: filled ? 'var(--accent)' : 'var(--text-muted)',
+                border: `1px solid ${filled ? 'var(--border-accent)' : 'var(--border)'}`,
+                alignSelf: 'flex-start',
+              }}>
+                {SCAR_LABELS[i]}
+              </span>
               <input
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none
-                  focus:ring-2 focus:ring-red-400 focus:border-red-400 bg-white"
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor = 'var(--input-border-focus)'; e.target.style.boxShadow = 'var(--input-shadow-focus)' }}
+                onBlur={e => { e.target.style.borderColor = 'var(--input-border)'; e.target.style.boxShadow = 'none' }}
                 placeholder='«Я [описание], поэтому [бонус], но [обратная сторона]»'
                 value={scar?.value ?? ''}
                 onChange={e => updateScar(i, e.target.value)}

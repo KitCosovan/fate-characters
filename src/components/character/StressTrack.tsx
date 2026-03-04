@@ -42,7 +42,7 @@ export default function StressTrack({ track, label, onChange }: StressTrackProps
               if (!box.checked) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
             }}
           >
-            {box.index + 1}
+            {box.index}
           </button>
         ))}
       </div>

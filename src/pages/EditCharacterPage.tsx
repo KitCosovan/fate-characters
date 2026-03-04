@@ -14,6 +14,7 @@ import ScarsSection from '../components/character/ScarsSection'
 import EquipmentSection from '../components/character/EquipmentSection'
 import NotesSection from '../components/character/NotesSection'
 import SkillAdvancement from '../components/character/SkillAdvancement'
+import { recalculateStressTracks } from '../utils/stressUtils'
 
 const Divider = () => <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
 
@@ -34,7 +35,15 @@ export default function EditCharacterPage() {
   const config = getSystemConfig(character.systemId)
 
   const update = (fields: Partial<Character>) => {
-    setCharacter(prev => prev ? { ...prev, ...fields } : prev)
+    setCharacter(prev => {
+      if (!prev) return prev
+      const updated = { ...prev, ...fields }
+      // Если поменялись навыки — пересчитываем стресс
+      if (fields.skills) {
+        updated.stressTracks = recalculateStressTracks(updated.stressTracks, fields.skills)
+      }
+      return updated
+    })
   }
 
   const handleSave = () => {
