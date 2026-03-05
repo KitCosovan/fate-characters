@@ -10,6 +10,7 @@ import EditCharacterPage from './pages/EditCharacterPage'
 import CreateNpcPage from './pages/CreateNpcPage'
 import EditNpcPage from './pages/EditNpcPage'
 import EncyclopediaPage from './pages/EncyclopediaPage'
+import { useCampaignStore } from './store/campaignStore'
 
 function App() {
   const loadAll = useCharacterStore(state => state.loadAll)
@@ -17,6 +18,8 @@ function App() {
   useEffect(() => {
     loadAll()
   }, [loadAll])
+
+  useCampaignStore(state => state.loadAll)()
 
   return (
     <Routes>

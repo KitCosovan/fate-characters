@@ -1,3 +1,4 @@
+// src/components/ui/Modal.tsx
 import { useEffect } from 'react'
 import Button from './Button'
 
@@ -9,10 +10,12 @@ interface ModalProps {
   confirmLabel?: string
   onConfirm?: () => void
   confirmVariant?: 'primary' | 'danger'
+  hideConfirm?: boolean
 }
 
 export default function Modal({
-  isOpen, onClose, title, children, confirmLabel, onConfirm, confirmVariant = 'primary'
+  isOpen, onClose, title, children,
+  confirmLabel, onConfirm, confirmVariant = 'primary', hideConfirm = false,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden'
@@ -32,30 +35,23 @@ export default function Modal({
         onClick={onClose}
       />
       <div style={{
-        position: 'relative',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: '20px',
-        padding: '24px',
-        width: '100%',
-        maxWidth: '400px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        position: 'relative', background: 'var(--surface)',
+        border: '1px solid var(--border)', borderRadius: '20px', padding: '24px',
+        width: '100%', maxWidth: '400px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
       }}>
         <h2 style={{
-          fontFamily: 'Cinzel, serif',
-          fontSize: '16px',
-          fontWeight: 700,
-          color: 'var(--text)',
-          marginBottom: '12px',
+          fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700,
+          color: 'var(--text)', marginBottom: '16px', flexShrink: 0,
         }}>
           {title}
         </h2>
-        <div style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '24px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '24px', overflowY: 'auto', flex: 1 }}>
           {children}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexShrink: 0 }}>
           <Button variant="secondary" onClick={onClose}>Отмена</Button>
-          {onConfirm && (
+          {!hideConfirm && onConfirm && (
             <Button variant={confirmVariant} onClick={onConfirm}>{confirmLabel}</Button>
           )}
         </div>

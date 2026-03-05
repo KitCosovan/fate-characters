@@ -10,15 +10,22 @@ import SearchBar from '../components/ui/SearchBar'
 import FilterPanel from '../components/ui/FilterPanel'
 import EmptyState from '../components/ui/EmptyState'
 import ToastNotifications from '../components/ui/ToastNotifications'
-import { IconImport, IconSave, IconCharacter, IconNpc } from '../components/ui/FateIcons'
+import { IconImport, IconSave, IconCharacter, IconNpc, IconMasks } from '../components/ui/FateIcons'
+import CampaignsTab from '../components/campaigns/CampaignsTab'
 
-type Tab = 'characters' | 'npcs'
+type Tab = 'characters' | 'npcs' | 'campaigns'
 
 const SYSTEM_LABELS: Record<string, string> = {
   'fate-core': 'Fate Core',
   'fate-accelerated': 'Accelerated',
   'book-of-ashes': 'Книга Пепла',
 }
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: 'characters', label: 'Персонажи', icon: <IconCharacter size={16} /> },
+  { id: 'npcs',       label: 'НПС',       icon: <IconNpc size={16} /> },
+  { id: 'campaigns',  label: 'Кампании',  icon: <IconMasks size={16} /> },
+]
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -41,6 +48,7 @@ export default function HomePage() {
   }, [])
 
   const filtered = characters.filter(c => {
+    if (tab === 'campaigns') return false
     if (tab === 'npcs' ? !c.isNpc : c.isNpc) return false
     if (systemFilter && c.systemId !== systemFilter) return false
     if (search) {
@@ -86,21 +94,31 @@ export default function HomePage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-            {tab === 'npcs' ? 'НПС' : 'Персонажи'}
+            {tab === 'npcs' ? 'НПС' : tab === 'campaigns' ? 'Кампании' : 'Персонажи'}
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
-            {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
-          </p>
+          {tab !== 'campaigns' && (
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
+              {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
+            </p>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleFileImport} />
-          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}><IconImport size={18} /></Button>
-          {characters.length > 0 && (
-            <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}><IconSave size={18} /></Button>
+          {tab !== 'campaigns' && (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <IconImport size={18} />
+              </Button>
+              {characters.length > 0 && (
+                <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}>
+                  <IconSave size={18} />
+                </Button>
+              )}
+              <Button size="sm" onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
+                + Создать
+              </Button>
+            </>
           )}
-          <Button size="sm" onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
-            + Создать
-          </Button>
         </div>
       </div>
 
@@ -110,67 +128,73 @@ export default function HomePage() {
         borderRadius: '12px', padding: '4px', marginBottom: '12px',
         border: '1px solid var(--border)',
       }}>
-        {(['characters', 'npcs'] as Tab[]).map(t => (
+        {TABS.map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             style={{
               flex: 1, padding: '9px', borderRadius: '9px', border: 'none',
               fontSize: '13px', fontWeight: 600, cursor: 'pointer',
               transition: 'all 0.15s ease', fontFamily: 'DM Sans, sans-serif',
-              background: tab === t ? 'var(--surface-3)' : 'transparent',
-              color: tab === t ? 'var(--text)' : 'var(--text-muted)',
+              background: tab === t.id ? 'var(--surface-3)' : 'transparent',
+              color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             }}
           >
             <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              {t === 'characters' ? <IconCharacter size={16} /> : <IconNpc size={16} />}
+              {t.icon}
             </div>
-            {t === 'characters' ? 'Персонажи' : 'НПС'}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* Поиск и фильтр */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-        <SearchBar value={search} onChange={setSearch} />
-        <FilterPanel selected={systemFilter} onChange={setSystemFilter} />
-      </div>
+      {/* Кампании */}
+      {tab === 'campaigns' && <CampaignsTab />}
 
-      {/* Список или пустой стейт */}
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={tab === 'npcs' ? <IconNpc size={64} /> : <IconCharacter size={64} />}
-          title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
-          description={search ? `По запросу «${search}» ничего не найдено` : 'Нажми «Создать» чтобы начать'}
-          action={!search ? {
-            label: '+ Создать',
-            onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')
-          } : undefined}
-        />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filtered.map((c, i) => (
-            <div key={c.id} className="fade-up" style={{ animationDelay: `${i * 0.04}s` }}>
-              <Card onClick={() => navigate(`/character/${c.id}`)}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>
-                      {c.name || 'Без имени'}
-                    </p>
-                    <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || 'Концепция не заполнена'}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
-                    <Badge variant="accent">{SYSTEM_LABELS[c.systemId] ?? c.systemId}</Badge>
-                    <Badge variant={c.isNpc ? 'dim' : 'green'}>{c.isNpc ? 'НПС' : 'Игрок'}</Badge>
-                  </div>
+      {/* Поиск, фильтр и список — только для персонажей и НПС */}
+      {tab !== 'campaigns' && (
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            <SearchBar value={search} onChange={setSearch} />
+            <FilterPanel selected={systemFilter} onChange={setSystemFilter} />
+          </div>
+
+          {filtered.length === 0 ? (
+            <EmptyState
+              icon={tab === 'npcs' ? <IconNpc size={64} /> : <IconCharacter size={64} />}
+              title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
+              description={search ? `По запросу «${search}» ничего не найдено` : 'Нажми «Создать» чтобы начать'}
+              action={!search ? {
+                label: '+ Создать',
+                onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')
+              } : undefined}
+            />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {filtered.map((c, i) => (
+                <div key={c.id} className="fade-up" style={{ animationDelay: `${i * 0.04}s` }}>
+                  <Card onClick={() => navigate(`/character/${c.id}`)}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>
+                          {c.name || 'Без имени'}
+                        </p>
+                        <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || 'Концепция не заполнена'}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                        <Badge variant="accent">{SYSTEM_LABELS[c.systemId] ?? c.systemId}</Badge>
+                        <Badge variant={c.isNpc ? 'dim' : 'green'}>{c.isNpc ? 'НПС' : 'Игрок'}</Badge>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* Модалка импорта */}

@@ -198,6 +198,7 @@ export default function CreateNpcPage() {
       <StuntsSection
         stunts={character.stunts}
         maxStunts={config.maxStunts}
+        systemId={systemId}
         onChange={stunts => update({ stunts })}
       />
       <Divider />

@@ -45,6 +45,7 @@ export interface Character {
   isNpc: boolean
   createdAt: string
   updatedAt: string
+  campaignId?: string
 }
 
 export interface NpcTemplate {
@@ -125,4 +126,14 @@ export interface NpcTemplate {
   name: string
   description: string
   character: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>
+}
+
+export interface Campaign {
+  id: string
+  name: string
+  description?: string
+  systemId: string
+  color: string
+  createdAt: string
+  updatedAt: string
 }
