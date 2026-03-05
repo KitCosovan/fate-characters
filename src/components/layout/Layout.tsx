@@ -14,10 +14,10 @@ export default function Layout() {
         padding: '24px 16px',
       }}>
         <style>{`
-          @media (max-width: 640px) {
-            main { padding-bottom: 88px !important; }
-          }
-        `}</style>
+    @media (max-width: 640px) {
+      main { padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
+    }
+  `}</style>
         <Outlet />
       </main>
       <BottomNav />

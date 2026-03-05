@@ -30,6 +30,7 @@ export default function Navbar() {
       background: 'var(--surface)',
       borderBottom: '1px solid var(--border)',
       position: 'sticky', top: 0, zIndex: 40,
+      paddingTop: 'env(safe-area-inset-top)',
     }}>
       <div style={{
         maxWidth: '672px', margin: '0 auto', padding: '0 16px',
