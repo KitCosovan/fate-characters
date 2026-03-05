@@ -14,12 +14,12 @@ import { useCampaignStore } from './store/campaignStore'
 
 function App() {
   const loadAll = useCharacterStore(state => state.loadAll)
+  const loadCampaigns = useCampaignStore(state => state.loadAll)
 
   useEffect(() => {
     loadAll()
-  }, [loadAll])
-
-  useCampaignStore(state => state.loadAll)()
+    loadCampaigns()
+  }, [loadAll, loadCampaigns])
 
   return (
     <Routes>
