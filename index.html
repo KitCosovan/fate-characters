@@ -1,18 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>K-Fate: Character Creator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <link rel="icon" type="image/svg+xml" href="/fate-characters/favicon.svg" />
+    <!-- Основное -->
+    <title>K-Fate</title>
+    <meta name="description" content="Инструментарий для настольных RPG на системе Fate" />
 
-    <!-- Meta -->
-    <meta name="description" content="Создавай персонажей для Fate Core, Fate Accelerated и Книги Пепла" />
-    <meta name="theme-color" content="#e8a020" />
-    <script type="module" crossorigin src="/fate-characters/assets/index-B4kjDChE.js"></script>
-    <link rel="stylesheet" crossorigin href="/fate-characters/assets/index-BKD6chVq.css">
-  </head>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Fate" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+    <!-- Цвет темы браузера -->
+    <meta name="theme-color" content="#1a1410" />
+    <meta name="msapplication-TileColor" content="#1a1410" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    <script type="module" crossorigin src="/assets/index-D6QUXpUK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BKD6chVq.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
   </body>
