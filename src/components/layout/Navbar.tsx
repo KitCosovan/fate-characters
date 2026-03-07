@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { Link, useLocation } from 'react-router-dom'
 import { IconFire, IconBook, IconSun, IconMoon, IconSwords, IconLightning } from '../ui/FateIcons'
+import UserMenu from '../auth/UserMenu'
 
 const THEME_ICONS: Record<string, React.ReactNode> = {
   'light': <IconSun size={18} />,
@@ -128,6 +129,8 @@ export default function Navbar() {
             </div>
           )}
         </div>
+        
+        <UserMenu />
       </div>
     </header>
   )
