@@ -11,7 +11,8 @@ interface CampaignRoomStore {
   loading: boolean
   error: string | null
 
-  joinRoom: (campaignId: string, userId: string) => Promise<void>
+  // localRole — роль из localStorage (из Campaign.userRole), используется как fallback
+  joinRoom: (campaignId: string, userId: string, localRole: CampaignRole) => Promise<void>
   leaveRoom: () => void
   setNpcVisibility: (characterId: string, visible: boolean) => Promise<void>
   setNpcVisibleFields: (characterId: string, fields: NpcVisibleField[]) => Promise<void>
@@ -32,38 +33,32 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
     loading: false,
     error: null,
 
-    joinRoom: async (campaignId, userId) => {
+    joinRoom: async (campaignId, userId, localRole) => {
       set({ loading: true, error: null, campaignId })
 
-      // 1. Проверить campaign_members
+      // 1. Проверить campaign_members в БД
       const { data: memberData } = await supabase
         .from('campaign_members')
         .select('role')
         .eq('campaign_id', campaignId)
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()  // не кидает ошибку если нет записи
 
       let myRole: CampaignRole
 
       if (memberData?.role) {
-        // Есть запись — используем её
+        // Есть запись в БД — доверяем ей
         myRole = memberData.role as CampaignRole
       } else {
-        // Нет записи — проверяем является ли пользователь владельцем кампании
-        const { data: campaignData } = await supabase
-          .from('campaigns')
-          .select('user_id')
-          .eq('id', campaignId)
-          .single()
+        // Нет записи — используем localRole из localStorage (он всегда корректный)
+        myRole = localRole
 
-        const isOwner = campaignData?.user_id === userId
-        myRole = isOwner ? 'gm' : 'player'
-
-        // Создать недостающую запись
+        // Создать запись чтобы в следующий раз не было проблем
         await supabase.from('campaign_members').upsert({
           campaign_id: campaignId,
           user_id: userId,
           role: myRole,
+          display_name: null,
         }, { onConflict: 'campaign_id,user_id' })
       }
 
@@ -82,7 +77,7 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         joinedAt: m.joined_at,
       }))
 
-      // 3. Персонажи кампании (RLS фильтрует скрытых НПС для игроков)
+      // 3. Персонажи кампании
       const { data: charsData } = await supabase
         .from('characters')
         .select('data, visible_to_players, visible_fields, user_id')
@@ -110,10 +105,8 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
             get()._removeCharacter(payload.old.id as string)
           } else {
             const row = payload.new as {
-              data: Character
-              user_id: string
-              visible_to_players: boolean
-              visible_fields: NpcVisibleField[]
+              data: Character; user_id: string
+              visible_to_players: boolean; visible_fields: NpcVisibleField[]
             }
             get()._upsertCharacter({
               ...row.data,
@@ -194,7 +187,7 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         .select('id')
         .eq('campaign_id', campaign.id)
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
       if (existing) return { campaignId: campaign.id }
 
