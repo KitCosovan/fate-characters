@@ -22,15 +22,10 @@ const SYSTEM_LABELS: Record<string, string> = {
   'book-of-ashes': 'Книга Пепла',
 }
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'characters', label: 'Персонажи', icon: <IconCharacter size={16} /> },
-  { id: 'npcs',       label: 'НПС',       icon: <IconNpc size={16} /> },
-  { id: 'campaigns',  label: 'Кампании',  icon: <IconMasks size={16} /> },
-]
-
 export default function HomePage() {
   const navigate = useNavigate()
   const { characters, addCharacter } = useCharacterStore()
+
   const [tab, setTab] = useState<Tab>('characters')
   const [showImportModal, setShowImportModal] = useState(false)
   const [pendingImport, setPendingImport] = useState<Character | null>(null)
@@ -48,6 +43,12 @@ export default function HomePage() {
       }
     })
   }, [])
+
+  const TABS = [
+    { id: 'characters' as Tab, label: 'Персонажи', icon: <IconCharacter size={16} /> },
+    { id: 'npcs' as Tab, label: 'НПС', icon: <IconNpc size={16} /> },
+    { id: 'campaigns' as Tab, label: 'Кампании', icon: <IconMasks size={16} /> },
+  ]
 
   const filtered = characters.filter(c => {
     if (tab === 'campaigns') return false
@@ -91,13 +92,15 @@ export default function HomePage() {
 
   return (
     <div className="fade-up">
+
+      {/* Шапка */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             {tab === 'npcs' ? 'НПС' : tab === 'campaigns' ? 'Кампании' : 'Персонажи'}
           </h1>
           {tab !== 'campaigns' && (
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
               {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
             </p>
           )}
@@ -122,27 +125,22 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Вкладки */}
       <div style={{
         display: 'flex', gap: '4px', background: 'var(--surface)',
         borderRadius: '12px', padding: '4px', marginBottom: '12px',
         border: '1px solid var(--border)',
       }}>
         {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              flex: 1, padding: '9px', borderRadius: '9px', border: 'none',
-              fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-              transition: 'all 0.15s ease', fontFamily: 'DM Sans, sans-serif',
-              background: tab === t.id ? 'var(--surface-3)' : 'transparent',
-              color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            }}
-          >
-            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              {t.icon}
-            </div>
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            flex: 1, padding: '9px', borderRadius: '9px', border: 'none',
+            fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+            transition: 'all 0.15s ease', fontFamily: 'DM Sans, sans-serif',
+            background: tab === t.id ? 'var(--surface-3)' : 'transparent',
+            color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          }}>
+            <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', flexShrink: 0 }}>{t.icon}</div>
             {t.label}
           </button>
         ))}
@@ -162,10 +160,7 @@ export default function HomePage() {
               icon={tab === 'npcs' ? <IconNpc size={64} /> : <IconCharacter size={64} />}
               title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
               description={search ? `По запросу «${search}» ничего не найдено` : 'Нажми «Создать» чтобы начать'}
-              action={!search ? {
-                label: '+ Создать',
-                onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')
-              } : undefined}
+              action={!search ? { label: '+ Создать', onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create') } : undefined}
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
