@@ -4,33 +4,24 @@ import { supabase } from '../lib/supabase'
 import type { Character, CampaignMember, CampaignRole, NpcVisibleField } from '../types'
 
 interface CampaignRoomStore {
-  // Данные комнаты
   campaignId: string | null
   members: CampaignMember[]
-  characters: Character[]  // все персонажи кампании (фильтрация на сервере через RLS)
+  characters: Character[]
   myRole: CampaignRole | null
   loading: boolean
   error: string | null
 
-  // Инициализация и подписка
   joinRoom: (campaignId: string, userId: string) => Promise<void>
   leaveRoom: () => void
-
-  // ГМ-действия
   setNpcVisibility: (characterId: string, visible: boolean) => Promise<void>
   setNpcVisibleFields: (characterId: string, fields: NpcVisibleField[]) => Promise<void>
-
-  // Присоединение к кампании
   joinCampaignByCode: (code: string, userId: string, displayName?: string) => Promise<{ campaignId: string } | string>
   generateInviteCode: (campaignId: string) => Promise<string | null>
-
-  // Обновление персонажа (для Realtime — обновляет локальный стейт)
   _upsertCharacter: (character: Character) => void
   _removeCharacter: (characterId: string) => void
 }
 
 export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
-  // Храним unsubscribe-функции для cleanup
   let realtimeChannel: ReturnType<typeof supabase.channel> | null = null
 
   return {
@@ -41,11 +32,10 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
     loading: false,
     error: null,
 
-    // ── Войти в комнату кампании ────────────────────────────────────────
     joinRoom: async (campaignId, userId) => {
       set({ loading: true, error: null, campaignId })
 
-      // 1. Получить мою роль в кампании
+      // 1. Проверить campaign_members
       const { data: memberData } = await supabase
         .from('campaign_members')
         .select('role')
@@ -53,9 +43,31 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         .eq('user_id', userId)
         .single()
 
-      const myRole = (memberData?.role as CampaignRole) ?? 'player'
+      let myRole: CampaignRole
 
-      // 2. Загрузить всех участников
+      if (memberData?.role) {
+        // Есть запись — используем её
+        myRole = memberData.role as CampaignRole
+      } else {
+        // Нет записи — проверяем является ли пользователь владельцем кампании
+        const { data: campaignData } = await supabase
+          .from('campaigns')
+          .select('user_id')
+          .eq('id', campaignId)
+          .single()
+
+        const isOwner = campaignData?.user_id === userId
+        myRole = isOwner ? 'gm' : 'player'
+
+        // Создать недостающую запись
+        await supabase.from('campaign_members').upsert({
+          campaign_id: campaignId,
+          user_id: userId,
+          role: myRole,
+        }, { onConflict: 'campaign_id,user_id' })
+      }
+
+      // 2. Все участники
       const { data: membersData } = await supabase
         .from('campaign_members')
         .select('*')
@@ -70,8 +82,7 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         joinedAt: m.joined_at,
       }))
 
-      // 3. Загрузить персонажей кампании
-      // RLS автоматически фильтрует: игроки не видят скрытых НПС
+      // 3. Персонажи кампании (RLS фильтрует скрытых НПС для игроков)
       const { data: charsData } = await supabase
         .from('characters')
         .select('data, visible_to_players, visible_fields, user_id')
@@ -86,17 +97,13 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
 
       set({ members, characters, myRole, loading: false })
 
-      // 4. Подписаться на Realtime
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel)
-      }
+      // 4. Realtime
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel)
 
       realtimeChannel = supabase
         .channel(`campaign:${campaignId}`)
         .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'characters',
+          event: '*', schema: 'public', table: 'characters',
           filter: `campaign_id=eq.${campaignId}`,
         }, payload => {
           if (payload.eventType === 'DELETE') {
@@ -108,22 +115,18 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
               visible_to_players: boolean
               visible_fields: NpcVisibleField[]
             }
-            const character: Character = {
+            get()._upsertCharacter({
               ...row.data,
               ownerId: row.user_id,
               visibleToPlayers: row.visible_to_players,
               visibleFields: row.visible_fields ?? [],
-            }
-            get()._upsertCharacter(character)
+            })
           }
         })
         .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'campaign_members',
+          event: '*', schema: 'public', table: 'campaign_members',
           filter: `campaign_id=eq.${campaignId}`,
         }, payload => {
-          // Обновить список участников когда кто-то вступил/вышел
           if (payload.eventType === 'INSERT') {
             const m = payload.new
             set(state => ({
@@ -139,7 +142,6 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         .subscribe()
     },
 
-    // ── Покинуть комнату ────────────────────────────────────────────────
     leaveRoom: () => {
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel)
@@ -148,7 +150,6 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
       set({ campaignId: null, members: [], characters: [], myRole: null })
     },
 
-    // ── ГМ: переключить видимость НПС ──────────────────────────────────
     setNpcVisibility: async (characterId, visible) => {
       const { error } = await supabase
         .from('characters')
@@ -164,7 +165,6 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
       }
     },
 
-    // ── ГМ: выбрать какие поля НПС видны игрокам ───────────────────────
     setNpcVisibleFields: async (characterId, fields) => {
       const { error } = await supabase
         .from('characters')
@@ -180,9 +180,7 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
       }
     },
 
-    // ── Вступить в кампанию по коду ────────────────────────────────────
     joinCampaignByCode: async (code, userId, displayName) => {
-      // Найти кампанию по коду
       const { data: campaign, error: findError } = await supabase
         .from('campaigns')
         .select('id')
@@ -191,7 +189,6 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
 
       if (findError || !campaign) return 'Кампания не найдена. Проверь код.'
 
-      // Проверить — не состоит ли уже
       const { data: existing } = await supabase
         .from('campaign_members')
         .select('id')
@@ -199,9 +196,8 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
         .eq('user_id', userId)
         .single()
 
-      if (existing) return { campaignId: campaign.id } // уже участник
+      if (existing) return { campaignId: campaign.id }
 
-      // Вступить как игрок
       const { error: joinError } = await supabase
         .from('campaign_members')
         .insert({
@@ -215,10 +211,8 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
       return { campaignId: campaign.id }
     },
 
-    // ── ГМ: сгенерировать инвайт-код ───────────────────────────────────
     generateInviteCode: async (campaignId) => {
       const code = Math.random().toString(36).slice(2, 8).toUpperCase()
-
       const { error } = await supabase
         .from('campaigns')
         .update({ invite_code: code })
@@ -228,7 +222,6 @@ export const useCampaignRoomStore = create<CampaignRoomStore>((set, get) => {
       return code
     },
 
-    // ── Внутренние: обновление стейта от Realtime ───────────────────────
     _upsertCharacter: (character) => {
       set(state => {
         const exists = state.characters.some(c => c.id === character.id)
