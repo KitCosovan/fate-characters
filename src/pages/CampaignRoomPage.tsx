@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useCampaignRoomStore } from '../store/campaignRoomStore'
 import { useCampaignStore } from '../store/campaignStore'
 import { useAuthStore } from '../store/authStore'
+import { supabase } from '../lib/supabase'
 import type { Character, NpcVisibleField } from '../types'
 import { IconCharacter, IconNpc, IconBack, IconShare } from '../components/ui/FateIcons'
 
@@ -25,7 +26,6 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
   const concept = character.aspects.find(a =>
     a.slotId === 'high-concept' || a.slotId === 'concept'
   )?.value
-
   const totalStress = character.stressTracks.reduce((s, t) => s + t.boxes.length, 0)
   const usedStress  = character.stressTracks.reduce((s, t) => s + t.boxes.filter(b => b.checked).length, 0)
 
@@ -33,7 +33,7 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
     <div onClick={onClick} style={{
       background: isMe ? 'var(--accent-glow)' : 'var(--surface)',
       border: `1px solid ${isMe ? 'var(--border-accent)' : 'var(--border)'}`,
-      borderRadius: '16px', padding: '16px', cursor: 'pointer', transition: 'all 0.15s',
+      borderRadius: '16px', padding: '16px', cursor: 'pointer',
       display: 'flex', flexDirection: 'column', gap: '10px',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -51,7 +51,6 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
           <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{ownerName}</span>
         </div>
       </div>
-
       {totalStress > 0 && (
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
           {character.stressTracks.map(track =>
@@ -63,16 +62,13 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
               }} />
             ))
           )}
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '4px' }}>
-            {usedStress}/{totalStress}
-          </span>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '4px' }}>{usedStress}/{totalStress}</span>
         </div>
       )}
-
       {character.consequences.some(c => c.value) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           {character.consequences.filter(c => c.value).map((c, i) => (
-            <p key={i} style={{ fontSize: '11px', color: '#e07070', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>⚡ {c.value}</p>
+            <p key={i} style={{ fontSize: '11px', color: '#e07070', margin: 0 }}>⚡ {c.value}</p>
           ))}
         </div>
       )}
@@ -85,9 +81,7 @@ function NpcCard({ character, isGm, onToggleVisibility, onEditFields, onClick }:
   character: Character; isGm: boolean
   onToggleVisibility: () => void; onEditFields: () => void; onClick: () => void
 }) {
-  const concept = character.aspects.find(a =>
-    a.slotId === 'high-concept' || a.slotId === 'concept'
-  )?.value
+  const concept = character.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value
   const isVisible = character.visibleToPlayers !== false
 
   return (
@@ -101,18 +95,18 @@ function NpcCard({ character, isGm, onToggleVisibility, onEditFields, onClick }:
           <p style={{ fontFamily: 'Cinzel, serif', fontSize: '14px', fontWeight: 700, color: 'var(--text)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {character.name || 'Без имени'}
           </p>
-          {concept && <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{concept}</p>}
+          {concept && <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: 0 }}>{concept}</p>}
         </div>
         {isGm && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
             <button onClick={onEditFields} style={{
-              background: 'var(--surface-2)', border: '1px solid var(--border)',
-              borderRadius: '8px', padding: '4px 8px', cursor: 'pointer',
-              fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif',
+              background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '8px',
+              padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+              color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif',
             }}>Поля</button>
             <button onClick={onToggleVisibility} style={{
               padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              fontSize: '11px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', transition: 'all 0.15s',
+              fontSize: '11px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif',
               background: isVisible ? 'rgba(112,192,112,0.15)' : 'var(--surface-2)',
               color: isVisible ? '#70c070' : 'var(--text-muted)',
             }}>
@@ -121,15 +115,6 @@ function NpcCard({ character, isGm, onToggleVisibility, onEditFields, onClick }:
           </div>
         )}
       </div>
-      {!isGm && isVisible && character.visibleFields && character.visibleFields.length > 0 && (
-        <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {character.visibleFields.map(f => (
-            <span key={f} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '20px', background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
-              {NPC_FIELD_LABELS[f]}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -153,12 +138,9 @@ function NpcFieldsModal({ character, onClose, onSave }: {
         background: 'var(--surface)', borderRadius: '20px', padding: '24px',
         maxWidth: '360px', width: '100%', border: '1px solid var(--border)',
       }} onClick={e => e.stopPropagation()}>
-        <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 6px' }}>
-          Видимость для игроков
-        </h3>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px' }}>
+        <h3 style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 16px' }}>
           {character.name} — что видят игроки
-        </p>
+        </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
           <button onClick={() => setSelected(selected.length === ALL_NPC_FIELDS.length ? [] : [...ALL_NPC_FIELDS])} style={{
             padding: '8px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer',
@@ -203,24 +185,24 @@ export default function CampaignRoomPage() {
   const { id: campaignId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
-  const { getById } = useCampaignStore()
+  const { getById, updateCampaign } = useCampaignStore()
   const {
     members, characters, myRole, loading,
-    joinRoom, leaveRoom, setNpcVisibility, setNpcVisibleFields, generateInviteCode,
+    joinRoom, leaveRoom, setNpcVisibility, setNpcVisibleFields,
   } = useCampaignRoomStore()
 
-  const [inviteCode, setInviteCode] = useState<string | null>(null)
-  const [showInvite, setShowInvite] = useState(false)
-  const [editingNpc, setEditingNpc] = useState<Character | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [inviteCode, setInviteCode]     = useState<string | null>(null)
+  const [showInvite, setShowInvite]     = useState(false)
+  const [editingNpc, setEditingNpc]     = useState<Character | null>(null)
+  const [copied, setCopied]             = useState(false)
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteError, setInviteError]   = useState<string | null>(null)
 
   const campaign = campaignId ? getById(campaignId) : undefined
   const isGm = myRole === 'gm'
 
   useEffect(() => {
     if (!campaignId || !user || !campaign) return
-
-    // Передаём localRole — роль из localStorage, это истина для владельца
     joinRoom(campaignId, user.id, campaign.userRole)
     return () => leaveRoom()
   }, [campaignId, user?.id])
@@ -229,10 +211,44 @@ export default function CampaignRoomPage() {
     if (campaign?.inviteCode) setInviteCode(campaign.inviteCode)
   }, [campaign?.inviteCode])
 
+  // Генерация инвайт-кода — напрямую через Supabase с явным user_id
   const handleGenerateInvite = async () => {
-    if (!campaignId) return
-    const code = await generateInviteCode(campaignId)
-    if (code) { setInviteCode(code); setShowInvite(true) }
+    if (!campaignId || !user) return
+    setInviteLoading(true)
+    setInviteError(null)
+
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+
+    // Сначала убеждаемся что user_id проставлен (фикс для старых кампаний)
+    const { error: uidError } = await supabase
+      .from('campaigns')
+      .update({ user_id: user.id })
+      .eq('id', campaignId)
+      .is('user_id', null)  // обновляем только если null
+
+    if (uidError) console.warn('user_id fix:', uidError)
+
+    // Теперь сохраняем код
+    const { error } = await supabase
+      .from('campaigns')
+      .update({ invite_code: code })
+      .eq('id', campaignId)
+
+    if (error) {
+      console.error('Invite code error:', error)
+      setInviteError(`Ошибка: ${error.message}`)
+      setInviteLoading(false)
+      return
+    }
+
+    // Обновить локальный стор
+    if (campaign) {
+      updateCampaign({ ...campaign, inviteCode: code })
+    }
+
+    setInviteCode(code)
+    setShowInvite(true)
+    setInviteLoading(false)
   }
 
   const inviteUrl = inviteCode
@@ -275,13 +291,11 @@ export default function CampaignRoomPage() {
           <IconBack size={20} />
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '18px', fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '18px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             {campaign?.name ?? 'Комната кампании'}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-              {members.length} участников
-            </p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{members.length} участников</p>
             {myRole && (
               <span style={{
                 fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
@@ -293,20 +307,42 @@ export default function CampaignRoomPage() {
             )}
           </div>
         </div>
+
         {isGm && (
           <button
             onClick={() => inviteCode ? setShowInvite(true) : handleGenerateInvite()}
+            disabled={inviteLoading}
             style={{
               background: 'var(--surface-2)', border: '1px solid var(--border)',
-              borderRadius: '10px', padding: '8px 12px', cursor: 'pointer',
+              borderRadius: '10px', padding: '8px 14px', cursor: inviteLoading ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', gap: '6px',
-              fontSize: '12px', fontWeight: 600, color: 'var(--text-dim)', fontFamily: 'DM Sans, sans-serif',
+              fontSize: '13px', fontWeight: 600, color: 'var(--text-dim)',
+              fontFamily: 'DM Sans, sans-serif', opacity: inviteLoading ? 0.6 : 1,
+              transition: 'all 0.15s',
             }}
+            onMouseEnter={e => { if (!inviteLoading) { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border-accent)'; el.style.color = 'var(--accent)' } }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border)'; el.style.color = 'var(--text-dim)' }}
           >
-            <IconShare size={16} /> Инвайт
+            <IconShare size={16} />
+            {inviteLoading ? 'Создаю...' : inviteCode ? 'Инвайт' : 'Создать инвайт'}
           </button>
         )}
       </div>
+
+      {/* Ошибка инвайта */}
+      {inviteError && (
+        <div style={{
+          padding: '12px 16px', borderRadius: '12px',
+          background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)',
+          fontSize: '13px', color: '#e07070',
+        }}>
+          {inviteError}
+          <br />
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            Запусти этот SQL в Supabase: <code>UPDATE campaigns SET user_id = auth.uid() WHERE id = '{campaignId}';</code>
+          </span>
+        </div>
+      )}
 
       {/* Инвайт-панель */}
       {showInvite && inviteCode && (
@@ -318,19 +354,19 @@ export default function CampaignRoomPage() {
             <p style={{ fontFamily: 'Cinzel, serif', fontSize: '13px', fontWeight: 700, color: 'var(--accent)', margin: 0 }}>
               Пригласить игроков
             </p>
-            <button onClick={() => setShowInvite(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '18px' }}>×</button>
+            <button onClick={() => setShowInvite(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '20px', lineHeight: 1 }}>×</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               flex: 1, background: 'var(--surface-2)', border: '1px solid var(--border)',
-              borderRadius: '10px', padding: '12px 16px', textAlign: 'center',
+              borderRadius: '10px', padding: '14px 16px', textAlign: 'center',
             }}>
-              <span style={{ fontFamily: 'Cinzel, serif', fontSize: '24px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.15em' }}>
+              <span style={{ fontFamily: 'Cinzel, serif', fontSize: '26px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.2em' }}>
                 {inviteCode}
               </span>
             </div>
             <button onClick={copyInvite} style={{
-              padding: '12px 16px', borderRadius: '10px', border: 'none',
+              padding: '14px 16px', borderRadius: '10px', border: 'none',
               background: copied ? '#70c070' : 'var(--accent)',
               color: copied ? '#fff' : 'var(--bg)', cursor: 'pointer',
               fontFamily: 'DM Sans, sans-serif', fontSize: '13px', fontWeight: 600,
@@ -345,7 +381,7 @@ export default function CampaignRoomPage() {
         </div>
       )}
 
-      {loading && <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Загрузка...</p>}
+      {loading && <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>Загрузка...</p>}
 
       {/* Персонажи */}
       {playerChars.length > 0 && (
@@ -392,16 +428,13 @@ export default function CampaignRoomPage() {
         </section>
       )}
 
-      {/* Пустой стейт */}
       {!loading && playerChars.length === 0 && npcChars.length === 0 && (
         <div style={{ textAlign: 'center', padding: '64px 24px', color: 'var(--text-muted)' }}>
           <p style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>
             Комната пустая
           </p>
           <p style={{ fontSize: '13px', margin: 0 }}>
-            {isGm
-              ? 'Пригласи игроков — нажми «Инвайт» выше'
-              : 'Ожидай других игроков...'}
+            {isGm ? 'Нажми «Создать инвайт» выше чтобы пригласить игроков' : 'Ожидай других игроков...'}
           </p>
         </div>
       )}
