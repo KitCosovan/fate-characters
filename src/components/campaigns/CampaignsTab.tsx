@@ -6,7 +6,7 @@ import { useCharacterStore } from '../../store/characterStore'
 import type { Campaign, Character, CampaignRole } from '../../types'
 import { generateId } from '../../utils'
 import { Modal } from '../ui'
-import { IconCharacter, IconNpc, IconDelete, IconEdit, IconPlus, IconFire, IconSwords, IconMasks } from '../ui/FateIcons'
+import { IconCharacter, IconNpc, IconDelete, IconEdit, IconPlus, IconFire } from '../ui/FateIcons'
 
 const CAMPAIGN_COLORS = [
   '#c8a96e', '#e07070', '#70a0e0', '#70c070',
@@ -22,7 +22,9 @@ const SYSTEM_LABELS: Record<string, string> = {
 const ROLE_LABELS: Record<CampaignRole, string> = { 'gm': 'Мастер', 'player': 'Игрок' }
 const ROLE_COLORS: Record<CampaignRole, string> = { 'gm': '#c8a96e', 'player': '#70a0e0' }
 
-// ── Модалка создания / редактирования ─────────────────────────────────
+// ── Модалка создания ───────────────────────────────────────────────────
+// При СОЗДАНИИ роль выбирается один раз и не меняется
+// При РЕДАКТИРОВАНИИ — только название, описание, цвет (без роли)
 interface CampaignModalProps {
   isOpen: boolean
   onClose: () => void
@@ -31,15 +33,17 @@ interface CampaignModalProps {
 }
 
 function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps) {
-  const [name, setName] = useState(initial?.name ?? '')
+  const isEdit = !!initial
+  const [name, setName]       = useState(initial?.name ?? '')
   const [description, setDesc] = useState(initial?.description ?? '')
-  const [systemId, setSystem] = useState(initial?.systemId ?? 'fate-core')
-  const [color, setColor] = useState(initial?.color ?? CAMPAIGN_COLORS[0])
-  const [userRole, setRole] = useState<CampaignRole>(initial?.userRole ?? 'gm')
+  const [systemId, setSystem]  = useState(initial?.systemId ?? 'fate-core')
+  const [color, setColor]      = useState(initial?.color ?? CAMPAIGN_COLORS[0])
+  const [userRole, setRole]    = useState<CampaignRole>(initial?.userRole ?? 'gm')
 
   const handleSave = () => {
     if (!name.trim()) return
-    onSave(name.trim(), description.trim(), systemId, color, userRole)
+    // При редактировании передаём существующую роль без изменений
+    onSave(name.trim(), description.trim(), systemId, color, isEdit ? initial!.userRole : userRole)
   }
 
   const inputStyle: React.CSSProperties = {
@@ -55,8 +59,8 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}
-      title={initial ? 'Редактировать кампанию' : 'Новая кампания'}
-      confirmLabel={initial ? 'Сохранить' : 'Создать'} onConfirm={handleSave}
+      title={isEdit ? 'Редактировать кампанию' : 'Новая кампания'}
+      confirmLabel={isEdit ? 'Сохранить' : 'Создать'} onConfirm={handleSave}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
@@ -89,29 +93,31 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
           </select>
         </div>
 
-        {/* Роль */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={labelStyle}>Моя роль в кампании</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {(['gm', 'player'] as CampaignRole[]).map(role => (
-              <button key={role} onClick={() => setRole(role)} style={{
-                flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
-                cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
-                fontSize: '13px', fontWeight: 600, transition: 'all 0.15s',
-                background: userRole === role ? 'var(--accent-glow)' : 'var(--surface-2)',
-                color: userRole === role ? ROLE_COLORS[role] : 'var(--text-muted)',
-                outline: userRole === role ? `1px solid ${ROLE_COLORS[role]}` : '1px solid var(--border)',
-              }}>
-                {role === 'gm' ? '⚔️ ' : '🎲 '}{ROLE_LABELS[role]}
-              </button>
-            ))}
+        {/* Роль — только при создании, потом заблокирована */}
+        {!isEdit && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={labelStyle}>Моя роль в кампании</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {(['gm', 'player'] as CampaignRole[]).map(role => (
+                <button key={role} onClick={() => setRole(role)} style={{
+                  flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
+                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '13px', fontWeight: 600, transition: 'all 0.15s',
+                  background: userRole === role ? 'var(--accent-glow)' : 'var(--surface-2)',
+                  color: userRole === role ? ROLE_COLORS[role] : 'var(--text-muted)',
+                  outline: userRole === role ? `1px solid ${ROLE_COLORS[role]}` : '1px solid var(--border)',
+                }}>
+                  {role === 'gm' ? '⚔️ ' : '🎲 '}{ROLE_LABELS[role]}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
+              {userRole === 'gm'
+                ? 'Создаёшь кампанию как Мастер — полный доступ к НПС'
+                : 'Присоединяешься как Игрок — только свои персонажи и чужие'}
+            </p>
           </div>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
-            {userRole === 'gm'
-              ? 'Полный доступ: персонажи, НПС, кампании'
-              : 'Только персонажи — НПС скрыты'}
-          </p>
-        </div>
+        )}
 
         {/* Цвет */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -189,13 +195,16 @@ export default function CampaignsTab() {
   const { campaigns, addCampaign, updateCampaign, removeCampaign } = useCampaignStore()
   const { characters, updateCharacter } = useCharacterStore()
 
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate, setShowCreate]     = useState(false)
   const [editCampaign, setEditCampaign] = useState<Campaign | null>(null)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [expanded, setExpanded]         = useState<string | null>(null)
   const [assignTarget, setAssignTarget] = useState<Character | null>(null)
 
   const handleCreate = (name: string, description: string, systemId: string, color: string, userRole: CampaignRole) => {
-    addCampaign({ id: generateId(), name, description, systemId, color, userRole, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
+    addCampaign({
+      id: generateId(), name, description, systemId, color, userRole,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    })
     setShowCreate(false)
   }
 
@@ -218,17 +227,11 @@ export default function CampaignsTab() {
     setAssignTarget(prev => prev?.id === characterId ? { ...prev, campaignId: campaignId ?? undefined } : prev)
   }
 
-  const toggleRole = (campaign: Campaign) => {
-    const newRole: CampaignRole = campaign.userRole === 'gm' ? 'player' : 'gm'
-    updateCampaign({ ...campaign, userRole: newRole })
-  }
-
   const unassigned = characters.filter(c => !c.campaignId)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* Кнопка создать */}
       <button onClick={() => setShowCreate(true)} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
         padding: '11px', borderRadius: '12px', border: '1px dashed var(--border)',
@@ -242,12 +245,12 @@ export default function CampaignsTab() {
         Новая кампания
       </button>
 
-      {/* Кампании */}
       {campaigns.map(campaign => {
         const members = characters.filter(c => c.campaignId === campaign.id)
         const players = members.filter(c => !c.isNpc)
-        const npcs = members.filter(c => c.isNpc)
-        const isOpen = expanded === campaign.id
+        const npcs    = members.filter(c => c.isNpc)
+        const isOpen  = expanded === campaign.id
+        const isGm    = campaign.userRole === 'gm'
 
         return (
           <div key={campaign.id} style={{
@@ -268,36 +271,30 @@ export default function CampaignsTab() {
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
                     {SYSTEM_LABELS[campaign.systemId]} · {members.length} участников
                   </p>
-                  {/* Роль — кликабельный бейдж, меняет роль по клику */}
-                  <button
-                    onClick={e => { e.stopPropagation(); toggleRole(campaign) }}
-                    title="Нажми чтобы сменить роль"
-                    style={{
-                      fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
-                      border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
-                      background: 'var(--surface-2)', color: ROLE_COLORS[campaign.userRole],
-                      outline: `1px solid ${ROLE_COLORS[campaign.userRole]}44`,
-                      transition: 'all 0.15s',
-                    }}
-                  >
+                  {/* Роль — только отображение, не кликабельно */}
+                  <span style={{
+                    fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
+                    background: 'var(--surface-2)', color: ROLE_COLORS[campaign.userRole],
+                    outline: `1px solid ${ROLE_COLORS[campaign.userRole]}44`,
+                  }}>
                     {campaign.userRole === 'gm' ? '⚔️' : '🎲'} {ROLE_LABELS[campaign.userRole]}
-                  </button>
+                  </span>
                 </div>
               </div>
-              
-              <button
-                onClick={e => { e.stopPropagation(); navigate(`/campaign/${campaign.id}/room`) }}
-                style={{
-                  background: 'var(--accent-glow)', border: '1px solid var(--border-accent)',
-                  borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
-                  color: 'var(--accent)', fontSize: '11px', fontWeight: 700,
-                  fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
-                }}
-              >
-                Войти →
-              </button>
 
-              <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                {/* Кнопка войти в комнату */}
+                <button
+                  onClick={() => navigate(`/campaign/${campaign.id}/room`)}
+                  style={{
+                    background: 'var(--accent-glow)', border: '1px solid var(--border-accent)',
+                    borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
+                    color: 'var(--accent)', fontSize: '11px', fontWeight: 700,
+                    fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+                  }}
+                >
+                  Войти →
+                </button>
                 <button onClick={() => setEditCampaign(campaign)} style={{
                   background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
                   padding: '6px', borderRadius: '8px', display: 'flex',
@@ -320,40 +317,12 @@ export default function CampaignsTab() {
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'inline-block', transform: isOpen ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>▼</span>
             </div>
 
-            {/* Раскрытое содержимое */}
+            {/* Содержимое */}
             {isOpen && (
               <div style={{ borderTop: '1px solid var(--border)', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {campaign.description && (
                   <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, lineHeight: 1.5 }}>{campaign.description}</p>
                 )}
-
-                {/* Блок роли с кнопкой смены */}
-                <div style={{
-                  padding: '10px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px',
-                  background: campaign.userRole === 'gm' ? 'rgba(200,169,110,0.08)' : 'rgba(112,160,224,0.08)',
-                  border: `1px solid ${ROLE_COLORS[campaign.userRole]}33`,
-                }}>
-                  <div style={{ width: 20, height: 20, flexShrink: 0 }}>
-                    {campaign.userRole === 'gm' ? <IconSwords size={20} /> : <IconMasks size={20} />}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '12px', fontWeight: 700, color: ROLE_COLORS[campaign.userRole], margin: '0 0 2px' }}>
-                      {ROLE_LABELS[campaign.userRole]}
-                    </p>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
-                      {campaign.userRole === 'gm'
-                        ? 'Полный доступ к персонажам и НПС'
-                        : 'Доступ только к персонажам игроков'}
-                    </p>
-                  </div>
-                  <button onClick={() => toggleRole(campaign)} style={{
-                    background: 'none', border: '1px solid var(--border)', borderRadius: '8px',
-                    padding: '4px 10px', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
-                    color: 'var(--text-muted)', fontFamily: 'DM Sans, sans-serif',
-                  }}>
-                    Сменить
-                  </button>
-                </div>
 
                 {/* Персонажи */}
                 {players.length > 0 && (
@@ -377,8 +346,8 @@ export default function CampaignsTab() {
                   </div>
                 )}
 
-                {/* НПС — только для ГМ */}
-                {campaign.userRole === 'gm' && npcs.length > 0 && (
+                {/* НПС — только для ГМ в локальном списке */}
+                {isGm && npcs.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
                       НПС ({npcs.length})
@@ -443,7 +412,6 @@ export default function CampaignsTab() {
         </div>
       )}
 
-      {/* Пустой стейт */}
       {campaigns.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: 56, height: 56 }}><IconFire size={56} /></div>
@@ -451,7 +419,7 @@ export default function CampaignsTab() {
             Кампаний пока нет
           </p>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-            Создай кампанию и выбери свою роль
+            Создай кампанию — выбери роль Мастера или Игрока
           </p>
         </div>
       )}
