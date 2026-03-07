@@ -1,3 +1,4 @@
+// src/pages/HomePage.tsx
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCharacterStore } from '../store/characterStore'
@@ -39,12 +40,13 @@ export default function HomePage() {
   const [systemFilter, setSystemFilter] = useState<string | null>(null)
 
   useEffect(() => {
-    const shared = decodeCharacterFromUrl()
-    if (shared) {
-      setPendingImport(shared)
-      setShowImportModal(true)
-      window.history.replaceState(null, '', window.location.pathname)
-    }
+    decodeCharacterFromUrl().then(shared => {
+      if (shared) {
+        setPendingImport(shared)
+        setShowImportModal(true)
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    })
   }, [])
 
   const filtered = characters.filter(c => {
@@ -89,8 +91,6 @@ export default function HomePage() {
 
   return (
     <div className="fade-up">
-
-      {/* Шапка */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
@@ -122,7 +122,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Вкладки */}
       <div style={{
         display: 'flex', gap: '4px', background: 'var(--surface)',
         borderRadius: '12px', padding: '4px', marginBottom: '12px',
@@ -149,10 +148,8 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Кампании */}
       {tab === 'campaigns' && <CampaignsTab />}
 
-      {/* Поиск, фильтр и список — только для персонажей и НПС */}
       {tab !== 'campaigns' && (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
@@ -197,7 +194,6 @@ export default function HomePage() {
         </>
       )}
 
-      {/* Модалка импорта */}
       <Modal
         isOpen={showImportModal}
         onClose={() => { setShowImportModal(false); setPendingImport(null) }}

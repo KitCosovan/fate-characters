@@ -1,4 +1,5 @@
 import type { Character } from '../types'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 export const exportCharacter = (character: Character): void => {
   const json = JSON.stringify(character, null, 2)
@@ -62,19 +63,66 @@ export const importAllFromFile = (file: File): Promise<Character[]> => {
   })
 }
 
-export const encodeCharacterToUrl = (character: Character): string => {
-  const json = JSON.stringify(character)
-  const encoded = btoa(encodeURIComponent(json))
-  return `${window.location.origin}${window.location.pathname}#/?shared=${encoded}`
+// Генерирует короткий ID: 6 символов, читаемый
+function generateShortId(): string {
+  return Math.random().toString(36).slice(2, 8)
 }
 
-export const decodeCharacterFromUrl = (): Character | null => {
+// Шаринг через Supabase — короткая ссылка
+export const encodeCharacterToUrl = async (character: Character): Promise<string> => {
+  // Если Supabase не настроен — fallback на старый base64 метод
+  if (!isSupabaseConfigured()) {
+    const json = JSON.stringify(character)
+    const encoded = btoa(encodeURIComponent(json))
+    return `${window.location.origin}${window.location.pathname}#/?shared=${encoded}`
+  }
+
+  const shortId = generateShortId()
+
+  const { error } = await supabase
+    .from('shared_characters')
+    .insert({ short_id: shortId, data: character })
+
+  if (error) {
+    // Если коллизия — попробуем ещё раз с новым ID
+    if (error.code === '23505') {
+      return encodeCharacterToUrl(character)
+    }
+    // Любая другая ошибка — fallback на base64
+    const json = JSON.stringify(character)
+    const encoded = btoa(encodeURIComponent(json))
+    return `${window.location.origin}${window.location.pathname}#/?shared=${encoded}`
+  }
+
+  return `${window.location.origin}${window.location.pathname}#/?s=${shortId}`
+}
+
+// Декодирует персонажа из URL — поддерживает оба формата
+export const decodeCharacterFromUrl = async (): Promise<Character | null> => {
   try {
     const hash = window.location.hash
-    const match = hash.match(/[?&]shared=([^&]+)/)
-    if (!match) return null
-    const json = decodeURIComponent(atob(match[1]))
-    return JSON.parse(json) as Character
+
+    // Новый формат: короткий ID (?s=abc123)
+    const shortMatch = hash.match(/[?&]s=([a-z0-9]{4,10})/)
+    if (shortMatch && isSupabaseConfigured()) {
+      const { data, error } = await supabase
+        .from('shared_characters')
+        .select('data')
+        .eq('short_id', shortMatch[1])
+        .single()
+
+      if (error || !data) return null
+      return data.data as Character
+    }
+
+    // Старый формат: base64 (?shared=...)
+    const base64Match = hash.match(/[?&]shared=([^&]+)/)
+    if (base64Match) {
+      const json = decodeURIComponent(atob(base64Match[1]))
+      return JSON.parse(json) as Character
+    }
+
+    return null
   } catch {
     return null
   }
