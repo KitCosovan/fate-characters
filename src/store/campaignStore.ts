@@ -1,6 +1,6 @@
 // src/store/campaignStore.ts
 import { create } from 'zustand'
-import type { Campaign } from '../types'
+import type { Campaign, CampaignRole } from '../types'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 
@@ -42,10 +42,8 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
     saveToStorage(updated)
 
     if (!isSupabaseConfigured()) return
-
     const userId = useAuthStore.getState().user?.id
 
-    // Сохранить кампанию
     supabase.from('campaigns').upsert({
       id: campaign.id,
       user_id: userId,
@@ -53,11 +51,8 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       updated_at: campaign.updatedAt,
       invite_code: campaign.inviteCode ?? null,
       gm_id: userId ?? null,
-    }).then(({ error }) => {
-      if (error) console.error('Campaign upsert:', error)
-    })
+    }).then(({ error }) => { if (error) console.error('Campaign upsert:', error) })
 
-    // Добавить создателя как ГМ в campaign_members — это критично для комнаты
     if (userId) {
       supabase.from('campaign_members').upsert({
         campaign_id: campaign.id,
@@ -81,7 +76,7 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       data: campaign,
       updated_at: campaign.updatedAt,
       invite_code: campaign.inviteCode ?? null,
-    })
+    }).then(({ error }) => { if (error) console.error('Campaign update:', error) })
   },
 
   removeCampaign: (id) => {
@@ -95,35 +90,76 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
     if (!isSupabaseConfigured()) return
     set({ syncing: true })
 
-    const { data, error } = await supabase
+    // 1. Свои кампании (где user_id = userId)
+    const { data: ownData } = await supabase
       .from('campaigns')
-      .select('data, updated_at')
+      .select('id, data, updated_at')
       .eq('user_id', userId)
 
-    if (!error && data) {
-      const local = get().campaigns
-      const merged = [...local]
+    // 2. Кампании где пользователь участник (joined by invite)
+    const { data: memberData } = await supabase
+      .from('campaign_members')
+      .select('campaign_id, role')
+      .eq('user_id', userId)
 
-      for (const row of data) {
-        const remote = row.data as Campaign
-        const idx = merged.findIndex(c => c.id === remote.id)
-        if (idx === -1) merged.push(remote)
-        else if (new Date(remote.updatedAt) > new Date(merged[idx].updatedAt)) merged[idx] = remote
+    // Собрать id чужих кампаний
+    const ownIds = new Set((ownData ?? []).map(r => r.id))
+    const foreignIds = (memberData ?? [])
+      .map(m => m.campaign_id)
+      .filter(id => !ownIds.has(id))
+
+    // 3. Загрузить данные чужих кампаний
+    let foreignCampaigns: Campaign[] = []
+    if (foreignIds.length > 0) {
+      const { data: foreignData } = await supabase
+        .from('campaigns')
+        .select('id, data, updated_at')
+        .in('id', foreignIds)
+
+      foreignCampaigns = (foreignData ?? []).map(row => {
+        const camp = row.data as Campaign
+        // Подставить роль пользователя в этой кампании
+        const membership = memberData?.find(m => m.campaign_id === row.id)
+        return { ...camp, userRole: (membership?.role ?? 'player') as CampaignRole }
+      })
+    }
+
+    // 4. Смержить всё
+    const local = get().campaigns
+    const merged = [...local]
+
+    const upsert = (remote: Campaign, role?: CampaignRole) => {
+      const idx = merged.findIndex(c => c.id === remote.id)
+      const withRole = role ? { ...remote, userRole: role } : remote
+      if (idx === -1) {
+        merged.push(withRole)
+      } else if (new Date(remote.updatedAt) > new Date(merged[idx].updatedAt)) {
+        merged[idx] = { ...withRole, userRole: merged[idx].userRole ?? withRole.userRole }
       }
+    }
 
-      set({ campaigns: merged, syncing: false })
-      saveToStorage(merged)
+    // Свои кампании
+    for (const row of (ownData ?? [])) {
+      const membership = memberData?.find(m => m.campaign_id === row.id)
+      upsert(row.data as Campaign, membership?.role as CampaignRole)
+    }
 
-      // Убедиться что для каждой кампании есть запись в campaign_members
-      for (const camp of merged) {
-        await supabase.from('campaign_members').upsert({
-          campaign_id: camp.id,
-          user_id: userId,
-          role: camp.userRole ?? 'gm',
-        }, { onConflict: 'campaign_id,user_id' })
-      }
-    } else {
-      set({ syncing: false })
+    // Чужие кампании (joined by invite)
+    for (const camp of foreignCampaigns) {
+      upsert(camp)
+    }
+
+    set({ campaigns: merged, syncing: false })
+    saveToStorage(merged)
+
+    // Убедиться что для каждой своей кампании есть запись в campaign_members
+    for (const row of (ownData ?? [])) {
+      const membership = memberData?.find(m => m.campaign_id === row.id)
+      await supabase.from('campaign_members').upsert({
+        campaign_id: row.id,
+        user_id: userId,
+        role: membership?.role ?? 'gm',
+      }, { onConflict: 'campaign_id,user_id' })
     }
   },
 }))
