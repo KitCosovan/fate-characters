@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCampaignStore } from '../../store/campaignStore'
 import { useCharacterStore } from '../../store/characterStore'
+import { fetchCampaignCharacters } from '../../utils/supabaseSync'
 import type { Campaign, Character, CampaignRole } from '../../types'
 import { generateId } from '../../utils'
 import { Modal } from '../ui'
@@ -22,9 +23,7 @@ const SYSTEM_LABELS: Record<string, string> = {
 const ROLE_LABELS: Record<CampaignRole, string> = { 'gm': 'Мастер', 'player': 'Игрок' }
 const ROLE_COLORS: Record<CampaignRole, string> = { 'gm': '#c8a96e', 'player': '#70a0e0' }
 
-// ── Модалка создания ───────────────────────────────────────────────────
-// При СОЗДАНИИ роль выбирается один раз и не меняется
-// При РЕДАКТИРОВАНИИ — только название, описание, цвет (без роли)
+// ── Модалка создания / редактирования ─────────────────────────────────
 interface CampaignModalProps {
   isOpen: boolean
   onClose: () => void
@@ -34,7 +33,7 @@ interface CampaignModalProps {
 
 function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps) {
   const isEdit = !!initial
-  const [name, setName]       = useState(initial?.name ?? '')
+  const [name, setName]        = useState(initial?.name ?? '')
   const [description, setDesc] = useState(initial?.description ?? '')
   const [systemId, setSystem]  = useState(initial?.systemId ?? 'fate-core')
   const [color, setColor]      = useState(initial?.color ?? CAMPAIGN_COLORS[0])
@@ -42,7 +41,6 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
 
   const handleSave = () => {
     if (!name.trim()) return
-    // При редактировании передаём существующую роль без изменений
     onSave(name.trim(), description.trim(), systemId, color, isEdit ? initial!.userRole : userRole)
   }
 
@@ -63,7 +61,6 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
       confirmLabel={isEdit ? 'Сохранить' : 'Создать'} onConfirm={handleSave}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={labelStyle}>Название</label>
           <input value={name} onChange={e => setName(e.target.value)}
@@ -73,7 +70,6 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
             onBlur={e => { e.target.style.borderColor = 'var(--input-border)' }}
           />
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={labelStyle}>Описание</label>
           <textarea value={description} onChange={e => setDesc(e.target.value)}
@@ -83,7 +79,6 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
             onBlur={e => { e.target.style.borderColor = 'var(--input-border)' }}
           />
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={labelStyle}>Система</label>
           <select value={systemId} onChange={e => setSystem(e.target.value)} style={inputStyle}>
@@ -93,10 +88,10 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
           </select>
         </div>
 
-        {/* Роль — только при создании, потом заблокирована */}
+        {/* Роль — только при создании */}
         {!isEdit && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={labelStyle}>Моя роль в кампании</label>
+            <label style={labelStyle}>Моя роль</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {(['gm', 'player'] as CampaignRole[]).map(role => (
                 <button key={role} onClick={() => setRole(role)} style={{
@@ -111,15 +106,9 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
-              {userRole === 'gm'
-                ? 'Создаёшь кампанию как Мастер — полный доступ к НПС'
-                : 'Присоединяешься как Игрок — только свои персонажи и чужие'}
-            </p>
           </div>
         )}
 
-        {/* Цвет */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label style={labelStyle}>Цвет</label>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -128,7 +117,7 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
                 width: '32px', height: '32px', borderRadius: '50%',
                 background: c, border: 'none', cursor: 'pointer',
                 outline: color === c ? '3px solid var(--accent)' : '2px solid transparent',
-                outlineOffset: '2px', transition: 'outline 0.15s',
+                outlineOffset: '2px',
               }} />
             ))}
           </div>
@@ -138,7 +127,7 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
   )
 }
 
-// ── Модалка назначения в кампанию ──────────────────────────────────────
+// ── Модалка назначения ─────────────────────────────────────────────────
 interface AssignModalProps {
   isOpen: boolean
   character: Character | null
@@ -162,7 +151,7 @@ function AssignModal({ isOpen, character, campaigns, onClose, onAssign }: Assign
           outline: !character.campaignId ? '1px solid var(--border-accent)' : '1px solid var(--border)',
           cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', color: 'var(--text)', fontSize: '13px',
         }}>
-          <span>📂</span> <span style={{ flex: 1 }}>Без кампании</span>
+          <span>📂</span><span style={{ flex: 1 }}>Без кампании</span>
           {!character.campaignId && <span style={{ color: 'var(--accent)' }}>✓</span>}
         </button>
         {campaigns.map(camp => (
@@ -175,10 +164,7 @@ function AssignModal({ isOpen, character, campaigns, onClose, onAssign }: Assign
           }}>
             <div style={{ width: 12, height: 12, borderRadius: '50%', background: camp.color, flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{camp.name}</span>
-            <span style={{
-              fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
-              background: 'var(--surface-3)', color: ROLE_COLORS[camp.userRole],
-            }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px', background: 'var(--surface-3)', color: ROLE_COLORS[camp.userRole] }}>
               {ROLE_LABELS[camp.userRole]}
             </span>
             {character.campaignId === camp.id && <span style={{ color: 'var(--accent)' }}>✓</span>}
@@ -200,11 +186,12 @@ export default function CampaignsTab() {
   const [expanded, setExpanded]         = useState<string | null>(null)
   const [assignTarget, setAssignTarget] = useState<Character | null>(null)
 
+  // Кеш персонажей кампании из Supabase (включая чужих)
+  const [remoteCharsCache, setRemoteCharsCache] = useState<Record<string, Character[]>>({})
+  const [loadingChars, setLoadingChars]         = useState<string | null>(null)
+
   const handleCreate = (name: string, description: string, systemId: string, color: string, userRole: CampaignRole) => {
-    addCampaign({
-      id: generateId(), name, description, systemId, color, userRole,
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    })
+    addCampaign({ id: generateId(), name, description, systemId, color, userRole, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
     setShowCreate(false)
   }
 
@@ -227,6 +214,19 @@ export default function CampaignsTab() {
     setAssignTarget(prev => prev?.id === characterId ? { ...prev, campaignId: campaignId ?? undefined } : prev)
   }
 
+  // Раскрыть кампанию — загрузить всех персонажей включая чужих
+  const handleExpand = async (campaignId: string) => {
+    if (expanded === campaignId) { setExpanded(null); return }
+    setExpanded(campaignId)
+
+    if (!remoteCharsCache[campaignId]) {
+      setLoadingChars(campaignId)
+      const remote = await fetchCampaignCharacters(campaignId)
+      setRemoteCharsCache(prev => ({ ...prev, [campaignId]: remote }))
+      setLoadingChars(null)
+    }
+  }
+
   const unassigned = characters.filter(c => !c.campaignId)
 
   return (
@@ -236,7 +236,7 @@ export default function CampaignsTab() {
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
         padding: '11px', borderRadius: '12px', border: '1px dashed var(--border)',
         background: 'transparent', color: 'var(--accent)', cursor: 'pointer',
-        fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', transition: 'all 0.15s',
+        fontSize: '13px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif',
       }}
         onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border-accent)'; el.style.background = 'var(--accent-glow)' }}
         onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border)'; el.style.background = 'transparent' }}
@@ -246,11 +246,22 @@ export default function CampaignsTab() {
       </button>
 
       {campaigns.map(campaign => {
-        const members = characters.filter(c => c.campaignId === campaign.id)
-        const players = members.filter(c => !c.isNpc)
-        const npcs    = members.filter(c => c.isNpc)
-        const isOpen  = expanded === campaign.id
-        const isGm    = campaign.userRole === 'gm'
+        const isOpen = expanded === campaign.id
+        const isGm   = campaign.userRole === 'gm'
+
+        // Мержим локальных и удалённых персонажей кампании
+        const localMembers  = characters.filter(c => c.campaignId === campaign.id)
+        const remoteMembers = remoteCharsCache[campaign.id] ?? []
+        // Дедупликация по id — предпочитаем локальные (более свежие)
+        const localIds = new Set(localMembers.map(c => c.id))
+        const allMembers = [
+          ...localMembers,
+          ...remoteMembers.filter(c => !localIds.has(c.id)),
+        ]
+
+        const players = allMembers.filter(c => !c.isNpc)
+        const npcs    = allMembers.filter(c => c.isNpc)
+        const isLoadingChars = loadingChars === campaign.id
 
         return (
           <div key={campaign.id} style={{
@@ -259,7 +270,7 @@ export default function CampaignsTab() {
             borderLeft: `3px solid ${campaign.color}`,
           }}>
             {/* Шапка */}
-            <div onClick={() => setExpanded(isOpen ? null : campaign.id)}
+            <div onClick={() => handleExpand(campaign.id)}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', cursor: 'pointer' }}
             >
               <div style={{ width: 12, height: 12, borderRadius: '50%', background: campaign.color, flexShrink: 0 }} />
@@ -269,13 +280,11 @@ export default function CampaignsTab() {
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
-                    {SYSTEM_LABELS[campaign.systemId]} · {members.length} участников
+                    {SYSTEM_LABELS[campaign.systemId]} · {allMembers.length} участников
                   </p>
-                  {/* Роль — только отображение, не кликабельно */}
                   <span style={{
                     fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
                     background: 'var(--surface-2)', color: ROLE_COLORS[campaign.userRole],
-                    outline: `1px solid ${ROLE_COLORS[campaign.userRole]}44`,
                   }}>
                     {campaign.userRole === 'gm' ? '⚔️' : '🎲'} {ROLE_LABELS[campaign.userRole]}
                   </span>
@@ -283,21 +292,17 @@ export default function CampaignsTab() {
               </div>
 
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                {/* Кнопка войти в комнату */}
-                <button
-                  onClick={() => navigate(`/campaign/${campaign.id}/room`)}
-                  style={{
-                    background: 'var(--accent-glow)', border: '1px solid var(--border-accent)',
-                    borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
-                    color: 'var(--accent)', fontSize: '11px', fontWeight: 700,
-                    fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
-                  }}
-                >
+                <button onClick={() => navigate(`/campaign/${campaign.id}/room`)} style={{
+                  background: 'var(--accent-glow)', border: '1px solid var(--border-accent)',
+                  borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
+                  color: 'var(--accent)', fontSize: '11px', fontWeight: 700,
+                  fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+                }}>
                   Войти →
                 </button>
                 <button onClick={() => setEditCampaign(campaign)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-                  padding: '6px', borderRadius: '8px', display: 'flex',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-muted)', padding: '6px', borderRadius: '8px', display: 'flex',
                 }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
@@ -305,8 +310,8 @@ export default function CampaignsTab() {
                   <IconEdit size={16} />
                 </button>
                 <button onClick={() => handleDelete(campaign.id)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-                  padding: '6px', borderRadius: '8px', display: 'flex',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-muted)', padding: '6px', borderRadius: '8px', display: 'flex',
                 }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#e07070'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
@@ -324,29 +329,44 @@ export default function CampaignsTab() {
                   <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, lineHeight: 1.5 }}>{campaign.description}</p>
                 )}
 
-                {/* Персонажи */}
+                {isLoadingChars && (
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, textAlign: 'center' }}>Загрузка персонажей...</p>
+                )}
+
+                {/* Персонажи (все — и локальные и чужие) */}
                 {players.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
                       Персонажи ({players.length})
                     </p>
-                    {players.map(c => (
-                      <div key={c.id} onClick={() => navigate(`/character/${c.id}`)} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px',
-                        borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer',
-                      }}>
-                        <div style={{ width: 18, height: 18, flexShrink: 0 }}><IconCharacter size={18} /></div>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', flex: 1 }}>{c.name || 'Без имени'}</span>
-                        <button onClick={e => { e.stopPropagation(); setAssignTarget(c) }} style={{
-                          background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
-                          fontSize: '11px', fontFamily: 'DM Sans, sans-serif', padding: '2px 6px', borderRadius: '6px',
-                        }}>переместить</button>
-                      </div>
-                    ))}
+                    {players.map(c => {
+                      const isLocal = localIds.has(c.id)
+                      return (
+                        <div key={c.id} onClick={() => navigate(`/character/${c.id}`)} style={{
+                          display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px',
+                          borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer',
+                        }}>
+                          <div style={{ width: 18, height: 18, flexShrink: 0 }}><IconCharacter size={18} /></div>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', flex: 1 }}>{c.name || 'Без имени'}</span>
+                          {/* Пометка чужого персонажа */}
+                          {!isLocal && (
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', padding: '2px 6px', borderRadius: '6px', background: 'var(--surface-3)' }}>
+                              игрок
+                            </span>
+                          )}
+                          {isLocal && (
+                            <button onClick={e => { e.stopPropagation(); setAssignTarget(c) }} style={{
+                              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+                              fontSize: '11px', fontFamily: 'DM Sans, sans-serif', padding: '2px 6px', borderRadius: '6px',
+                            }}>переместить</button>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
-                {/* НПС — только для ГМ в локальном списке */}
+                {/* НПС — только для ГМ */}
                 {isGm && npcs.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
@@ -368,7 +388,7 @@ export default function CampaignsTab() {
                   </div>
                 )}
 
-                {members.length === 0 && (
+                {!isLoadingChars && allMembers.length === 0 && (
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', margin: 0 }}>
                     Нет участников — назначь персонажей из вкладок
                   </p>

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCharacterStore } from '../store/characterStore'
+import { fetchRemoteCharacterById } from '../utils/supabaseSync'
 import { Button, Modal } from '../components/ui'
 import CharacterSheet from '../components/character/CharacterSheet'
 import ShareModal from '../components/ui/ShareModal'
@@ -21,29 +22,62 @@ export default function CharacterDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { getById, updateCharacter, removeCharacter } = useCharacterStore()
-  const character = getById(id ?? '')
+
+  const localCharacter = getById(id ?? '')
+  const [character, setCharacter] = useState<Character | undefined>(localCharacter)
+  const [loading, setLoading] = useState(!localCharacter)
+  const [notFound, setNotFound] = useState(false)
+
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const { toasts, showToast, removeToast } = useToast()
   const [showAdvancement, setShowAdvancement] = useState(false)
 
-  // ← config ПОСЛЕ всех хуков, но до return
-  if (!character) {
-    return (
-      <div style={{ textAlign: 'center', padding: '64px 0' }}>
-        <p style={{ fontSize: '48px', marginBottom: '12px' }}><IconNotFound size={64} /></p>
-        <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>Персонаж не найден</p>
-        <Button variant="ghost" onClick={() => navigate('/')}>На главную</Button>
-      </div>
-    )
-  }
+  // Если нет локально — фетчим из Supabase (чужой персонаж из кампании)
+  useEffect(() => {
+    if (localCharacter) {
+      setCharacter(localCharacter)
+      setLoading(false)
+      return
+    }
+    if (!id) { setNotFound(true); return }
+    setLoading(true)
+    fetchRemoteCharacterById(id).then(remote => {
+      if (remote) setCharacter(remote)
+      else setNotFound(true)
+      setLoading(false)
+    })
+  }, [id])
 
-  // Теперь character гарантированно не undefined
+  // Следить за обновлениями локального стора
+  useEffect(() => {
+    if (localCharacter) setCharacter(localCharacter)
+  }, [localCharacter])
+
+  if (loading) return (
+    <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+      Загрузка...
+    </div>
+  )
+
+  if (notFound || !character) return (
+    <div style={{ textAlign: 'center', padding: '64px 0' }}>
+      <p style={{ fontSize: '48px', marginBottom: '12px' }}><IconNotFound size={64} /></p>
+      <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>Персонаж не найден</p>
+      <Button variant="ghost" onClick={() => navigate(-1)}>← Назад</Button>
+    </div>
+  )
+
+  // Если нет ownerId — персонаж локальный, значит мой
+  const isOwner = !character.ownerId
   const config = getSystemConfig(character.systemId)
 
-  const handleUpdate = (updated: Character) => updateCharacter(updated)
-  const handleNotesChange = (notes: string) => updateCharacter({ ...character, notes })
-  const handleDelete = () => { removeCharacter(character.id); navigate('/') }
+  const handleUpdate = (updated: Character) => {
+    updateCharacter(updated)
+    setCharacter(updated)
+  }
+  const handleNotesChange = (notes: string) => handleUpdate({ ...character, notes })
+  const handleDelete = () => { removeCharacter(character.id); navigate(-1) }
   const handleExport = () => { exportCharacter(character); showToast('Персонаж сохранён как JSON') }
 
   return (
@@ -53,7 +87,7 @@ export default function CharacterDetailPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             style={{
               background: 'var(--surface-2)', border: '1px solid var(--border)',
               borderRadius: '8px', color: 'var(--text-dim)', width: '32px', height: '32px',
@@ -66,27 +100,31 @@ export default function CharacterDetailPage() {
             </h1>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
               {character.isNpc ? 'НПС' : 'Персонаж'} · {SYSTEM_LABELS[character.systemId] ?? character.systemId}
+              {!isOwner && <span style={{ marginLeft: '8px', color: 'var(--accent)', fontWeight: 600 }}>· просмотр</span>}
             </p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Button variant="secondary" size="sm" onClick={() => navigate(character.isNpc ? `/npc/${character.id}/edit` : `/character/${character.id}/edit`)}><IconEdit size={18} /></Button>
-          <Button variant="secondary" size="sm" onClick={handleExport}><IconSave size={18} /></Button>
-          <Button variant="secondary" size="sm" onClick={() => setShowShareModal(true)}><IconShare size={18} /></Button>
-          <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}><IconDelete size={18} /></Button>
-        </div>
+        {/* Кнопки редактирования только для владельца */}
+        {isOwner && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button variant="secondary" size="sm" onClick={() => navigate(character.isNpc ? `/npc/${character.id}/edit` : `/character/${character.id}/edit`)}><IconEdit size={18} /></Button>
+            <Button variant="secondary" size="sm" onClick={handleExport}><IconSave size={18} /></Button>
+            <Button variant="secondary" size="sm" onClick={() => setShowShareModal(true)}><IconShare size={18} /></Button>
+            <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}><IconDelete size={18} /></Button>
+          </div>
+        )}
       </div>
 
       {/* Лист персонажа */}
       <CharacterSheet
         character={character}
-        onStressChange={handleUpdate}
-        onConsequenceChange={handleUpdate}
-        onNotesChange={handleNotesChange}
+        onStressChange={isOwner ? handleUpdate : undefined}
+        onConsequenceChange={isOwner ? handleUpdate : undefined}
+        onNotesChange={isOwner ? handleNotesChange : undefined}
       />
 
-      {/* Развитие навыков */}
-      {config.skillMode !== 'approaches' && (
+      {/* Развитие навыков — только владельцу */}
+      {isOwner && config.skillMode !== 'approaches' && (
         <>
           <button
             onClick={() => setShowAdvancement(v => !v)}
@@ -103,7 +141,6 @@ export default function CharacterDetailPage() {
             <span><IconAdvancement size={18} /></span>
             {showAdvancement ? 'Скрыть развитие' : 'Развитие навыков'}
           </button>
-
           {showAdvancement && (
             <div className="fade-up">
               <SkillAdvancement
@@ -116,20 +153,24 @@ export default function CharacterDetailPage() {
         </>
       )}
 
-      <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Удалить персонажа?"
-        confirmLabel="Удалить"
-        confirmVariant="danger"
-        onConfirm={handleDelete}
-      >
-        <p style={{ margin: 0 }}>
-          Персонаж <strong style={{ color: 'var(--text)' }}>{character.name}</strong> будет удалён безвозвратно.
-        </p>
-      </Modal>
+      {isOwner && (
+        <>
+          <Modal
+            isOpen={showDeleteModal}
+            onClose={() => setShowDeleteModal(false)}
+            title="Удалить персонажа?"
+            confirmLabel="Удалить"
+            confirmVariant="danger"
+            onConfirm={handleDelete}
+          >
+            <p style={{ margin: 0 }}>
+              Персонаж <strong style={{ color: 'var(--text)' }}>{character.name}</strong> будет удалён безвозвратно.
+            </p>
+          </Modal>
+          <ShareModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} character={character} />
+        </>
+      )}
 
-      <ShareModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} character={character} />
       <ToastNotifications toasts={toasts} onRemove={removeToast} />
     </div>
   )
