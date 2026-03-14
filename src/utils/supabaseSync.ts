@@ -1,7 +1,6 @@
 // src/utils/supabaseSync.ts
 import { supabase } from '../lib/supabase'
-import type { Character } from '../types'
-import type { Campaign } from '../types'
+import type { Character, Campaign } from '../types'
 
 // ── CHARACTERS ────────────────────────────────────────────────────────
 
@@ -23,17 +22,14 @@ export async function upsertRemoteCharacter(character: Character, userId: string
       user_id: userId,
       data: character,
       updated_at: character.updatedAt,
+      campaign_id: character.campaignId ?? null,  // ← критично для комнаты
     }, { onConflict: 'id' })
 
   if (error) console.error('upsertRemoteCharacter:', error)
 }
 
 export async function deleteRemoteCharacter(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('characters')
-    .delete()
-    .eq('id', id)
-
+  const { error } = await supabase.from('characters').delete().eq('id', id)
   if (error) console.error('deleteRemoteCharacter:', error)
 }
 
@@ -63,16 +59,11 @@ export async function upsertRemoteCampaign(campaign: Campaign, userId: string): 
 }
 
 export async function deleteRemoteCampaign(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('campaigns')
-    .delete()
-    .eq('id', id)
-
+  const { error } = await supabase.from('campaigns').delete().eq('id', id)
   if (error) console.error('deleteRemoteCampaign:', error)
 }
 
 // ── MERGE ─────────────────────────────────────────────────────────────
-// Объединяет локальные и удалённые данные — побеждает более свежий updatedAt
 
 export function mergeCharacters(local: Character[], remote: Character[]): Character[] {
   const map = new Map<string, Character>()
