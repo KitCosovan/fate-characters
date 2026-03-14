@@ -16,14 +16,15 @@ import EncyclopediaPage from './pages/EncyclopediaPage'
 import AuthPage from './pages/AuthPage'
 import CampaignRoomPage from './pages/CampaignRoomPage'
 import JoinCampaignPage from './pages/JoinCampaignPage'
+import ViewCharacterPage from './pages/ViewCharacterPage'
 
 function App() {
-  const loadCharacters    = useCharacterStore(state => state.loadAll)
-  const loadCampaigns     = useCampaignStore(state => state.loadAll)
-  const syncCharacters    = useCharacterStore(state => state.syncWithRemote)
-  const syncCampaigns     = useCampaignStore(state => state.syncWithRemote)
+  const loadCharacters     = useCharacterStore(state => state.loadAll)
+  const loadCampaigns      = useCampaignStore(state => state.loadAll)
+  const syncCharacters     = useCharacterStore(state => state.syncWithRemote)
+  const syncCampaigns      = useCampaignStore(state => state.syncWithRemote)
   const subscribeCampaigns = useCampaignStore(state => state.subscribeToChanges)
-  const initAuth          = useAuthStore(state => state.init)
+  const initAuth           = useAuthStore(state => state.init)
 
   useEffect(() => {
     loadCharacters()
@@ -36,7 +37,6 @@ function App() {
       if (user) {
         syncCharacters(user.id)
         syncCampaigns(user.id)
-        // Подписаться на удаление/обновление кампаний в реальном времени
         unsubscribe = subscribeCampaigns(user.id)
       }
     })
@@ -46,10 +46,15 @@ function App() {
 
   return (
     <Routes>
+      {/* Страницы без Layout */}
       <Route path="/auth"              element={<AuthPage />} />
       <Route path="/join"              element={<JoinCampaignPage />} />
       <Route path="/join/:code"        element={<JoinCampaignPage />} />
       <Route path="/campaign/:id/room" element={<CampaignRoomPage />} />
+      <Route path="/view/:shortId"     element={<ViewCharacterPage />} />
+      <Route path="/view"              element={<ViewCharacterPage />} />
+
+      {/* Страницы с Layout */}
       <Route path="/" element={<Layout />}>
         <Route index                       element={<HomePage />} />
         <Route path="character/create"     element={<CreateCharacterPage />} />
