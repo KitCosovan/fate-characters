@@ -19,7 +19,6 @@ const NPC_FIELD_LABELS: Record<NpcVisibleField, string> = {
 
 const ALL_NPC_FIELDS: NpcVisibleField[] = ['concept', 'aspects', 'skills', 'stress', 'consequences', 'stunts']
 
-// ── Карточка персонажа игрока ────────────────────────────────────────
 function PlayerCard({ character, ownerName, isMe, onClick }: {
   character: Character; ownerName: string; isMe: boolean; onClick: () => void
 }) {
@@ -48,7 +47,10 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
           {isMe && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', background: 'var(--accent)', color: 'var(--bg)' }}>Мой</span>}
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{ownerName}</span>
+          {/* Показываем имя/email владельца */}
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {ownerName}
+          </span>
         </div>
       </div>
       {totalStress > 0 && (
@@ -76,18 +78,18 @@ function PlayerCard({ character, ownerName, isMe, onClick }: {
   )
 }
 
-// ── НПС-карточка ────────────────────────────────────────────────────
 function NpcCard({ character, isGm, onToggleVisibility, onEditFields, onClick }: {
   character: Character; isGm: boolean
   onToggleVisibility: () => void; onEditFields: () => void; onClick: () => void
 }) {
   const concept = character.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value
-  const isVisible = character.visibleToPlayers !== false
+  const isVisible = character.visibleToPlayers === true
 
   return (
     <div style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: '16px', padding: '16px', opacity: isGm ? 1 : isVisible ? 1 : 0.5,
+      borderRadius: '16px', padding: '16px',
+      opacity: isGm ? 1 : isVisible ? 1 : 0.5,
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         <div style={{ width: 18, height: 18, flexShrink: 0, marginTop: '2px' }}><IconNpc size={18} /></div>
@@ -119,7 +121,6 @@ function NpcCard({ character, isGm, onToggleVisibility, onEditFields, onClick }:
   )
 }
 
-// ── Модалка настройки полей НПС ──────────────────────────────────────
 function NpcFieldsModal({ character, onClose, onSave }: {
   character: Character; onClose: () => void; onSave: (fields: NpcVisibleField[]) => void
 }) {
@@ -180,7 +181,6 @@ function NpcFieldsModal({ character, onClose, onSave }: {
   )
 }
 
-// ── Главная страница комнаты ─────────────────────────────────────────
 export default function CampaignRoomPage() {
   const { id: campaignId } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -191,12 +191,11 @@ export default function CampaignRoomPage() {
     joinRoom, leaveRoom, setNpcVisibility, setNpcVisibleFields,
   } = useCampaignRoomStore()
 
-  const [inviteCode, setInviteCode]     = useState<string | null>(null)
-  const [showInvite, setShowInvite]     = useState(false)
-  const [editingNpc, setEditingNpc]     = useState<Character | null>(null)
-  const [copied, setCopied]             = useState(false)
+  const [inviteCode, setInviteCode]       = useState<string | null>(null)
+  const [showInvite, setShowInvite]       = useState(false)
+  const [editingNpc, setEditingNpc]       = useState<Character | null>(null)
+  const [copied, setCopied]               = useState(false)
   const [inviteLoading, setInviteLoading] = useState(false)
-  const [inviteError, setInviteError]   = useState<string | null>(null)
 
   const campaign = campaignId ? getById(campaignId) : undefined
   const isGm = myRole === 'gm'
@@ -211,43 +210,26 @@ export default function CampaignRoomPage() {
     if (campaign?.inviteCode) setInviteCode(campaign.inviteCode)
   }, [campaign?.inviteCode])
 
-  // Генерация инвайт-кода — напрямую через Supabase с явным user_id
   const handleGenerateInvite = async () => {
     if (!campaignId || !user) return
     setInviteLoading(true)
-    setInviteError(null)
 
-    const code = Math.random().toString(36).slice(2, 8).toUpperCase()
-
-    // Сначала убеждаемся что user_id проставлен (фикс для старых кампаний)
-    const { error: uidError } = await supabase
-      .from('campaigns')
+    // Починить user_id если null
+    await supabase.from('campaigns')
       .update({ user_id: user.id })
       .eq('id', campaignId)
-      .is('user_id', null)  // обновляем только если null
+      .is('user_id', null)
 
-    if (uidError) console.warn('user_id fix:', uidError)
-
-    // Теперь сохраняем код
-    const { error } = await supabase
-      .from('campaigns')
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const { error } = await supabase.from('campaigns')
       .update({ invite_code: code })
       .eq('id', campaignId)
 
-    if (error) {
-      console.error('Invite code error:', error)
-      setInviteError(`Ошибка: ${error.message}`)
-      setInviteLoading(false)
-      return
+    if (!error) {
+      if (campaign) updateCampaign({ ...campaign, inviteCode: code })
+      setInviteCode(code)
+      setShowInvite(true)
     }
-
-    // Обновить локальный стор
-    if (campaign) {
-      updateCampaign({ ...campaign, inviteCode: code })
-    }
-
-    setInviteCode(code)
-    setShowInvite(true)
     setInviteLoading(false)
   }
 
@@ -264,12 +246,15 @@ export default function CampaignRoomPage() {
 
   const playerChars = characters.filter(c => !c.isNpc)
   const npcChars    = characters.filter(c => c.isNpc)
-  const visibleNpcs = isGm ? npcChars : npcChars.filter(c => c.visibleToPlayers !== false)
+  const visibleNpcs = isGm ? npcChars : npcChars.filter(c => c.visibleToPlayers === true)
 
+  // Имя владельца из campaign_members (display_name = email или введённое имя)
   const getOwnerName = (ownerId?: string) => {
     if (!ownerId) return '—'
     if (ownerId === user?.id) return 'Я'
-    return members.find(m => m.userId === ownerId)?.displayName ?? 'Игрок'
+    const member = members.find(m => m.userId === ownerId)
+    // display_name содержит email или имя введённое при вступлении
+    return member?.displayName ?? 'Игрок'
   }
 
   if (!user) return (
@@ -283,7 +268,7 @@ export default function CampaignRoomPage() {
 
       {/* Шапка */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button onClick={() => navigate('/')} style={{
+        <button onClick={() => navigate(-1)} style={{
           background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '8px',
           color: 'var(--text-dim)', width: '36px', height: '36px', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
@@ -294,8 +279,23 @@ export default function CampaignRoomPage() {
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '18px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             {campaign?.name ?? 'Комната кампании'}
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>{members.length} участников</p>
+            {/* Список участников с именами */}
+            {members.length > 0 && (
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                {members.map(m => (
+                  <span key={m.id} style={{
+                    fontSize: '10px', padding: '1px 7px', borderRadius: '20px',
+                    background: 'var(--surface-2)',
+                    color: m.role === 'gm' ? '#c8a96e' : '#70a0e0',
+                  }}>
+                    {m.userId === user.id ? 'Я' : (m.displayName ?? 'Игрок')}
+                    {m.role === 'gm' ? ' ⚔️' : ''}
+                  </span>
+                ))}
+              </div>
+            )}
             {myRole && (
               <span style={{
                 fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
@@ -307,7 +307,6 @@ export default function CampaignRoomPage() {
             )}
           </div>
         </div>
-
         {isGm && (
           <button
             onClick={() => inviteCode ? setShowInvite(true) : handleGenerateInvite()}
@@ -318,7 +317,6 @@ export default function CampaignRoomPage() {
               display: 'flex', alignItems: 'center', gap: '6px',
               fontSize: '13px', fontWeight: 600, color: 'var(--text-dim)',
               fontFamily: 'DM Sans, sans-serif', opacity: inviteLoading ? 0.6 : 1,
-              transition: 'all 0.15s',
             }}
             onMouseEnter={e => { if (!inviteLoading) { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border-accent)'; el.style.color = 'var(--accent)' } }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border)'; el.style.color = 'var(--text-dim)' }}
@@ -328,21 +326,6 @@ export default function CampaignRoomPage() {
           </button>
         )}
       </div>
-
-      {/* Ошибка инвайта */}
-      {inviteError && (
-        <div style={{
-          padding: '12px 16px', borderRadius: '12px',
-          background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)',
-          fontSize: '13px', color: '#e07070',
-        }}>
-          {inviteError}
-          <br />
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            Запусти этот SQL в Supabase: <code>UPDATE campaigns SET user_id = auth.uid() WHERE id = '{campaignId}';</code>
-          </span>
-        </div>
-      )}
 
       {/* Инвайт-панель */}
       {showInvite && inviteCode && (

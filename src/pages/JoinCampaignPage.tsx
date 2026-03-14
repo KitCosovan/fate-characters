@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useCampaignRoomStore } from '../store/campaignRoomStore'
+import { useCampaignStore } from '../store/campaignStore'
 import { IconFire } from '../components/ui/FateIcons'
 
 export default function JoinCampaignPage() {
@@ -10,13 +11,13 @@ export default function JoinCampaignPage() {
   const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
   const { joinCampaignByCode } = useCampaignRoomStore()
+  const { syncWithRemote } = useCampaignStore()
 
-  const [code, setCode]           = useState(urlCode ?? '')
-  const [displayName, setName]    = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState<string | null>(null)
+  const [code, setCode]        = useState(urlCode ?? '')
+  const [displayName, setName] = useState('')
+  const [loading, setLoading]  = useState(false)
+  const [error, setError]      = useState<string | null>(null)
 
-  // Если пришли по ссылке с кодом — сразу вступить
   useEffect(() => {
     if (urlCode && user) handleJoin(urlCode)
   }, [urlCode, user?.id])
@@ -26,12 +27,17 @@ export default function JoinCampaignPage() {
     if (!joinCode.trim()) { setError('Введи код кампании'); return }
 
     setLoading(true); setError(null)
-    const result = await joinCampaignByCode(joinCode, user.id, displayName || undefined)
+
+    // Используем displayName или email как имя в кампании
+    const nameToUse = displayName.trim() || user.email || 'Игрок'
+    const result = await joinCampaignByCode(joinCode, user.id, nameToUse)
 
     if (typeof result === 'string') {
       setError(result)
       setLoading(false)
     } else {
+      // Синхронизировать кампании чтобы новая появилась в сторе
+      await syncWithRemote(user.id)
       navigate(`/campaign/${result.campaignId}/room`)
     }
   }
@@ -49,8 +55,6 @@ export default function JoinCampaignPage() {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
     }}>
       <div style={{ width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-        {/* Лого */}
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: 48, height: 48 }}><IconFire size={48} /></div>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
@@ -58,11 +62,9 @@ export default function JoinCampaignPage() {
           </h1>
         </div>
 
-        {/* Форма */}
         <div style={{
           background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: '20px', padding: '24px',
-          display: 'flex', flexDirection: 'column', gap: '16px',
+          borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px',
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -87,7 +89,7 @@ export default function JoinCampaignPage() {
             <input
               value={displayName}
               onChange={e => setName(e.target.value)}
-              placeholder="Как тебя называть"
+              placeholder={user?.email ?? 'Как тебя называть'}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
               style={inputStyle}
               onFocus={e => { e.target.style.borderColor = 'var(--input-border-focus)' }}
@@ -100,26 +102,20 @@ export default function JoinCampaignPage() {
               fontSize: '13px', color: '#e07070', margin: 0,
               padding: '10px 14px', background: 'rgba(224,112,112,0.1)',
               borderRadius: '10px', border: '1px solid rgba(224,112,112,0.3)',
-            }}>
-              {error}
-            </p>
+            }}>{error}</p>
           )}
 
-          <button
-            onClick={() => handleJoin()}
-            disabled={loading}
-            style={{
-              background: 'var(--accent)', color: 'var(--bg)', border: 'none',
-              borderRadius: '12px', padding: '13px', cursor: loading ? 'default' : 'pointer',
-              fontSize: '15px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
-              opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s',
-            }}
-          >
+          <button onClick={() => handleJoin()} disabled={loading} style={{
+            background: 'var(--accent)', color: 'var(--bg)', border: 'none',
+            borderRadius: '12px', padding: '13px', cursor: loading ? 'default' : 'pointer',
+            fontSize: '15px', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
+            opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s',
+          }}>
             {loading ? 'Вступаю...' : 'Вступить'}
           </button>
         </div>
 
-        <button onClick={() => navigate('/')} style={{
+        <button onClick={() => navigate(-1)} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: 'var(--text-muted)', fontSize: '13px',
           fontFamily: 'DM Sans, sans-serif', textAlign: 'center',
