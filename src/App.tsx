@@ -18,22 +18,30 @@ import CampaignRoomPage from './pages/CampaignRoomPage'
 import JoinCampaignPage from './pages/JoinCampaignPage'
 
 function App() {
-  const loadCharacters = useCharacterStore(state => state.loadAll)
-  const loadCampaigns  = useCampaignStore(state => state.loadAll)
-  const syncCharacters = useCharacterStore(state => state.syncWithRemote)
-  const syncCampaigns  = useCampaignStore(state => state.syncWithRemote)
-  const initAuth       = useAuthStore(state => state.init)
+  const loadCharacters    = useCharacterStore(state => state.loadAll)
+  const loadCampaigns     = useCampaignStore(state => state.loadAll)
+  const syncCharacters    = useCharacterStore(state => state.syncWithRemote)
+  const syncCampaigns     = useCampaignStore(state => state.syncWithRemote)
+  const subscribeCampaigns = useCampaignStore(state => state.subscribeToChanges)
+  const initAuth          = useAuthStore(state => state.init)
 
   useEffect(() => {
     loadCharacters()
     loadCampaigns()
+
+    let unsubscribe: (() => void) | undefined
+
     initAuth().then(() => {
       const user = useAuthStore.getState().user
       if (user) {
         syncCharacters(user.id)
         syncCampaigns(user.id)
+        // Подписаться на удаление/обновление кампаний в реальном времени
+        unsubscribe = subscribeCampaigns(user.id)
       }
     })
+
+    return () => { unsubscribe?.() }
   }, [])
 
   return (

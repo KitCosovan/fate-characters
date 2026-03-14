@@ -26,6 +26,7 @@ interface CampaignStore {
   updateCampaign: (campaign: Campaign) => void
   removeCampaign: (id: string) => void
   syncWithRemote: (userId: string) => Promise<void>
+  subscribeToChanges: (userId: string) => () => void
 }
 
 export const useCampaignStore = create<CampaignStore>((set, get) => ({
@@ -59,9 +60,7 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
         user_id: userId,
         role: 'gm',
         display_name: useAuthStore.getState().user?.email ?? null,
-      }, { onConflict: 'campaign_id,user_id' }).then(({ error }) => {
-        if (error) console.error('Member insert:', error)
-      })
+      }, { onConflict: 'campaign_id,user_id' })
     }
   },
 
@@ -87,27 +86,13 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
 
     if (!isSupabaseConfigured()) return
 
-    const userId = useAuthStore.getState().user?.id
-
-    // Сначала убедиться что user_id проставлен (для старых кампаний)
-    if (userId) {
-      supabase.from('campaigns')
-        .update({ user_id: userId })
-        .eq('id', id)
-        .is('user_id', null)
-        .then(() => {
-          // Теперь удалить
-          supabase.from('campaigns')
-            .delete()
-            .eq('id', id)
-            .then(({ error }) => {
-              if (error) console.error('Campaign delete:', error)
-            })
-        })
-    } else {
-      supabase.from('campaigns').delete().eq('id', id)
-        .then(({ error }) => { if (error) console.error('Campaign delete:', error) })
-    }
+    // Удаляем из Supabase — RLS теперь разрешает если ты GM в campaign_members
+    supabase.from('campaigns')
+      .delete()
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) console.error('Campaign delete error:', error.message, error.details)
+      })
   },
 
   syncWithRemote: async (userId) => {
@@ -120,7 +105,7 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       .select('id, data, updated_at')
       .eq('user_id', userId)
 
-    // 2. Кампании где участник (joined by invite)
+    // 2. Членство в кампаниях
     const { data: memberData } = await supabase
       .from('campaign_members')
       .select('campaign_id, role')
@@ -131,7 +116,7 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       .map(m => m.campaign_id)
       .filter(id => !ownIds.has(id))
 
-    // 3. Загрузить чужие кампании
+    // 3. Чужие кампании
     let foreignCampaigns: Campaign[] = []
     if (foreignIds.length > 0) {
       const { data: foreignData } = await supabase
@@ -146,7 +131,12 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       })
     }
 
-    // 4. Мерж
+    // 4. Мерж — учитываем что некоторые кампании могли быть удалены ГМом
+    const remoteIds = new Set([
+      ...(ownData ?? []).map(r => r.id),
+      ...foreignCampaigns.map(c => c.id),
+    ])
+
     const local = get().campaigns
     const merged = [...local]
 
@@ -155,7 +145,6 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
       if (idx === -1) {
         merged.push(remote)
       } else if (new Date(remote.updatedAt) > new Date(merged[idx].updatedAt)) {
-        // Сохраняем локальную роль если есть
         merged[idx] = { ...remote, userRole: merged[idx].userRole ?? remote.userRole }
       }
     }
@@ -166,10 +155,26 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
     }
     for (const camp of foreignCampaigns) upsertMerge(camp)
 
-    set({ campaigns: merged, syncing: false })
-    saveToStorage(merged)
+    // Удалить локально кампании которых больше нет на сервере
+    // (только те которые были загружены с сервера раньше — не трогаем локальные без userId)
+    const finalMerged = merged.filter(c => {
+      // Если есть на сервере — оставляем
+      if (remoteIds.has(c.id)) return true
+      // Если это локальная кампания (ещё не была синкнута) — оставляем
+      // Определяем по тому что она есть в local но нет в remote
+      const wasLocal = local.some(l => l.id === c.id)
+      const wasRemote = [...(ownData ?? []), ...foreignCampaigns].some(r =>
+        typeof r === 'object' && 'id' in r && r.id === c.id
+      )
+      // Если была на сервере но теперь нет — удалена ГМом
+      if (wasLocal && !wasRemote && ownIds.size > 0) return false
+      return true
+    })
 
-    // Убедиться что есть записи в campaign_members для своих кампаний
+    set({ campaigns: finalMerged, syncing: false })
+    saveToStorage(finalMerged)
+
+    // Убедиться что есть записи в campaign_members
     for (const row of (ownData ?? [])) {
       await supabase.from('campaign_members').upsert({
         campaign_id: row.id,
@@ -178,5 +183,50 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
         display_name: useAuthStore.getState().user?.email ?? null,
       }, { onConflict: 'campaign_id,user_id' })
     }
+  },
+
+  // Realtime-подписка на удаление кампаний
+  // Вызвать в App.tsx после логина
+  subscribeToChanges: (userId) => {
+    if (!isSupabaseConfigured()) return () => {}
+
+    const channel = supabase
+      .channel(`user-campaigns:${userId}`)
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'campaigns',
+      }, payload => {
+        const deletedId = payload.old.id as string
+        const current = get().campaigns
+        if (current.some(c => c.id === deletedId)) {
+          const updated = current.filter(c => c.id !== deletedId)
+          set({ campaigns: updated })
+          saveToStorage(updated)
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'campaigns',
+      }, payload => {
+        // Обновить invite_code и другие поля если обновил ГМ
+        const updatedData = payload.new.data as Campaign
+        if (!updatedData) return
+        const inviteCode = payload.new.invite_code as string | null
+        const current = get().campaigns
+        if (current.some(c => c.id === updatedData.id)) {
+          const updated = current.map(c =>
+            c.id === updatedData.id
+              ? { ...c, ...updatedData, inviteCode: inviteCode ?? c.inviteCode }
+              : c
+          )
+          set({ campaigns: updated })
+          saveToStorage(updated)
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   },
 }))
