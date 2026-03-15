@@ -12,11 +12,29 @@ const THEME_ICONS: Record<string, React.ReactNode> = {
   'book-of-ashes': <IconFire size={18} />,
 }
 
+function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  const location = useLocation()
+  const active = location.pathname === to
+  return (
+    <Link to={to} style={{
+      textDecoration: 'none', fontSize: '12px', fontWeight: 600,
+      color: active ? 'var(--accent)' : 'var(--text-muted)',
+      padding: '6px 12px', borderRadius: '20px',
+      background: active ? 'var(--accent-glow)' : 'transparent',
+      border: `1px solid ${active ? 'var(--border-accent)' : 'transparent'}`,
+      transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif',
+      display: 'flex', alignItems: 'center', gap: '6px',
+    }} className="hide-on-mobile">
+      <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>{icon}</div>
+      <span>{label}</span>
+    </Link>
+  )
+}
+
 export default function Navbar() {
   const { themeId, theme, themes, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const location = useLocation()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -35,39 +53,37 @@ export default function Navbar() {
     }}>
       <div style={{
         maxWidth: '672px', margin: '0 auto', padding: '0 16px',
-        height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
       }}>
 
         {/* Логотип */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <IconFire size={24} />
           <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: '15px', color: 'var(--accent)', letterSpacing: '0.06em' }}>
             FATE CHARACTERS
           </span>
         </Link>
 
-        {/* Энциклопедия */}
-        <Link
-          to="/encyclopedia"
-          style={{
-            textDecoration: 'none', fontSize: '12px', fontWeight: 600,
-            color: location.pathname === '/encyclopedia' ? 'var(--accent)' : 'var(--text-muted)',
-            padding: '6px 12px', borderRadius: '20px',
-            background: location.pathname === '/encyclopedia' ? 'var(--accent-glow)' : 'transparent',
-            border: `1px solid ${location.pathname === '/encyclopedia' ? 'var(--border-accent)' : 'transparent'}`,
-            transition: 'all 0.15s', fontFamily: 'DM Sans, sans-serif',
-            display: 'flex', alignItems: 'center', gap: '6px',
-          }}
-          className="hide-on-mobile"
-        >
-          <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center' }}>
-            <IconBook size={16} />
-          </div>
-          <span>Энциклопедия</span>
-        </Link>
+        {/* Навигационные ссылки */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <NavLink to="/encyclopedia" icon={<IconBook size={16} />} label="Энциклопедия" />
+          <NavLink to="/rules" icon={
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          } label="Правила" />
+          <NavLink to="/faq" icon={
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          } label="FAQ" />
+        </div>
 
         {/* Переключатель тем */}
-        <div ref={ref} style={{ position: 'relative' }}>
+        <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
           <button
             onClick={() => setOpen(o => !o)}
             style={{
@@ -80,7 +96,6 @@ export default function Navbar() {
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-accent)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
           >
-            {/* ← было: theme.icon */}
             <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center' }}>
               {THEME_ICONS[themeId]}
             </div>
@@ -96,32 +111,25 @@ export default function Navbar() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)', zIndex: 100,
             }}>
               {themes.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => { setTheme(t.id); setOpen(false) }}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '9px 12px', borderRadius: '9px', border: 'none',
-                    background: themeId === t.id ? 'var(--surface-3)' : 'transparent',
-                    cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-                    fontWeight: themeId === t.id ? 600 : 400,
-                    color: themeId === t.id ? 'var(--text)' : 'var(--text-dim)',
-                    textAlign: 'left', transition: 'background 0.1s',
-                  }}
+                <button key={t.id} onClick={() => { setTheme(t.id); setOpen(false) }} style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '9px 12px', borderRadius: '9px', border: 'none',
+                  background: themeId === t.id ? 'var(--surface-3)' : 'transparent',
+                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
+                  fontWeight: themeId === t.id ? 600 : 400,
+                  color: themeId === t.id ? 'var(--text)' : 'var(--text-dim)',
+                  textAlign: 'left', transition: 'background 0.1s',
+                }}
                   onMouseEnter={e => { if (themeId !== t.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
                   onMouseLeave={e => { if (themeId !== t.id) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
-                  {/* ← было: t.icon */}
                   <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                     {THEME_ICONS[t.id]}
                   </div>
                   <span>{t.name}</span>
-                  {themeId === t.id && (
-                    <span style={{ marginLeft: 'auto', color: 'var(--accent)', fontSize: '12px' }}>✓</span>
-                  )}
+                  {themeId === t.id && <span style={{ marginLeft: 'auto', color: 'var(--accent)', fontSize: '12px' }}>✓</span>}
                 </button>
               ))}
-
               <div style={{ height: '1px', background: 'var(--border)', margin: '6px 0' }} />
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', padding: '4px 12px', margin: 0 }}>
                 Тема сохраняется автоматически
@@ -129,7 +137,7 @@ export default function Navbar() {
             </div>
           )}
         </div>
-        
+
         <UserMenu />
       </div>
     </header>

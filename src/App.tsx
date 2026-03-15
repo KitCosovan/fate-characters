@@ -17,6 +17,8 @@ import AuthPage from './pages/AuthPage'
 import CampaignRoomPage from './pages/CampaignRoomPage'
 import JoinCampaignPage from './pages/JoinCampaignPage'
 import ViewCharacterPage from './pages/ViewCharacterPage'
+import RulesPage from './pages/RulesPage'
+import FaqPage from './pages/FaqPage'
 
 function App() {
   const loadCharacters     = useCharacterStore(state => state.loadAll)
@@ -63,6 +65,8 @@ function App() {
         <Route path="npc/create"           element={<CreateNpcPage />} />
         <Route path="npc/:id/edit"         element={<EditNpcPage />} />
         <Route path="encyclopedia"         element={<EncyclopediaPage />} />
+        <Route path="rules"                element={<RulesPage />} />
+        <Route path="faq"                  element={<FaqPage />} />
         <Route path="*"                    element={<NotFoundPage />} />
       </Route>
     </Routes>
