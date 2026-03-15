@@ -1,0 +1,509 @@
+{
+  "nav": {
+    "title": "FATE CHARACTERS",
+    "encyclopedia": "Encyclopedia",
+    "rules": "Rules",
+    "faq": "FAQ",
+    "signIn": "Sign In",
+    "sync": "Synchronize",
+    "syncing": "Syncing...",
+    "signOut": "Sign Out",
+    "language": "Language",
+    "more": "More"
+  },
+  "tabs": {
+    "characters": "Characters",
+    "npcs": "NPCs",
+    "campaigns": "Campaigns"
+  },
+  "home": {
+    "title_characters": "Characters",
+    "title_npcs": "NPCs",
+    "title_campaigns": "Campaigns",
+    "count_one": "{{count}} entry",
+    "count_few": "{{count}} entries",
+    "count_many": "{{count}} entries",
+    "create": "+ Create",
+    "empty_characters": "No characters yet",
+    "empty_npcs": "No NPCs yet",
+    "empty_hint": "Click «Create» to get started",
+    "no_results": "Nothing found",
+    "no_results_hint": "No results for «{{query}}»",
+    "search_placeholder": "Search..."
+  },
+  "character": {
+    "player": "Character",
+    "npc": "NPC",
+    "unnamed": "Unnamed",
+    "concept_empty": "Concept not filled",
+    "back": "Back",
+    "edit": "Edit",
+    "save": "Save",
+    "share": "Share",
+    "delete": "Delete",
+    "delete_confirm": "Delete character?",
+    "delete_body": "Character {{name}} will be permanently deleted.",
+    "not_found": "Character not found",
+    "loading": "Loading...",
+    "view_only": "view only",
+    "gm_mode": "GM mode",
+    "advancement": "Skill Advancement",
+    "advancement_hide": "Hide Advancement",
+    "exported": "Character saved as JSON",
+    "import": "Import character?",
+    "import_body": "Add {{name}}?",
+    "import_btn": "Import",
+    "imported": "{{name}} imported",
+    "import_error": "Import error",
+    "backup_saved": "Backup saved"
+  },
+  "aspects": {
+    "label": "Aspects",
+    "high-concept": "High Concept",
+    "trouble": "Trouble",
+    "phase1": "Phase 1 Aspect",
+    "phase2": "Phase 2 Aspect",
+    "phase3": "Phase 3 Aspect",
+    "free": "Free Aspect",
+    "scar": "Scar",
+    "concept": "Concept",
+    "vice": "Vice",
+    "bright-side": "Bright Side",
+    "mask": "Mask"
+  },
+  "stress": {
+    "label": "Stress",
+    "physical": "Physical",
+    "mental": "Mental",
+    "used": "{{used}}/{{total}}"
+  },
+  "consequences": {
+    "label": "Consequences",
+    "mild": "Mild",
+    "moderate": "Moderate",
+    "severe": "Severe",
+    "extreme": "Extreme"
+  },
+  "skills": {
+    "label": "Skills",
+    "rating": "+{{rating}}"
+  },
+  "stunts": {
+    "label": "Stunts",
+    "add": "+ Add Stunt",
+    "none": "No stunts"
+  },
+  "fate_points": {
+    "label": "Fate Points",
+    "refresh": "Refresh: {{value}}"
+  },
+  "notes": {
+    "label": "Notes",
+    "placeholder": "Notes about the character..."
+  },
+  "equipment": {
+    "label": "Equipment",
+    "slots": "Slots",
+    "free_invokes": "Free Invokes",
+    "types": {
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "resource": "Resource",
+      "relic": "Relic",
+      "empty": "Empty"
+    }
+  },
+  "scars": {
+    "label": "Scars"
+  },
+  "campaigns": {
+    "new": "New Campaign",
+    "empty_title": "No campaigns yet",
+    "empty_hint": "Create a campaign — choose GM or Player role",
+    "system": "System",
+    "members": "{{count}} members",
+    "enter": "Enter →",
+    "edit": "Edit",
+    "delete": "Delete",
+    "delete_confirm": "Delete campaign? Characters will remain but lose their assignment.",
+    "no_members": "No members — assign characters from the tabs",
+    "unassigned": "No campaign ({{count}})",
+    "assign": "+ to campaign",
+    "move": "move",
+    "modal_title_create": "New Campaign",
+    "modal_title_edit": "Edit Campaign",
+    "name_label": "Name",
+    "name_placeholder": "e.g. Ashes of Empire",
+    "desc_label": "Description",
+    "desc_placeholder": "Short description...",
+    "system_label": "System",
+    "role_label": "My Role",
+    "role_gm": "Game Master",
+    "role_player": "Player",
+    "role_gm_hint": "Creating as GM — full access to NPCs",
+    "role_player_hint": "Joining as Player — your characters and others",
+    "color_label": "Color",
+    "create": "Create",
+    "save": "Save",
+    "players_section": "Characters ({{count}})",
+    "npcs_section": "NPCs ({{count}})"
+  },
+  "room": {
+    "title": "Campaign Room",
+    "members": "{{count}} members",
+    "role_gm": "Game Master",
+    "role_player": "Player",
+    "invite": "Invite",
+    "create_invite": "Create Invite",
+    "creating_invite": "Creating...",
+    "invite_title": "Invite Players",
+    "invite_hint": "Players enter the code at /join or follow the link",
+    "copy_link": "Copy Link",
+    "copied": "Copied",
+    "empty_title": "Room is empty",
+    "empty_hint_gm": "Click «Create Invite» above to invite players",
+    "empty_hint_player": "Waiting for other players...",
+    "loading": "Loading...",
+    "players_section": "Characters ({{count}})",
+    "npcs_section": "NPCs ({{count}})",
+    "hidden_count": "{{count}} hidden",
+    "npc_visible": "Visible",
+    "npc_hidden": "Hidden",
+    "npc_fields": "Fields",
+    "npc_fields_title": "Player Visibility",
+    "npc_fields_all": "All fields",
+    "npc_no_access": "Sign in to access the campaign room",
+    "my_badge": "Mine",
+    "field_concept": "Concept",
+    "field_aspects": "Aspects",
+    "field_skills": "Skills",
+    "field_stress": "Stress",
+    "field_consequences": "Consequences",
+    "field_stunts": "Stunts"
+  },
+  "join": {
+    "title": "Join Campaign",
+    "code_label": "Campaign Code",
+    "code_placeholder": "XXXXXX",
+    "name_label": "Name in campaign",
+    "name_optional": "(optional)",
+    "submit": "Join",
+    "submitting": "Joining...",
+    "back": "← Back",
+    "not_found": "Campaign not found. Check the code.",
+    "error": "Error joining. Please try again."
+  },
+  "auth": {
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "no_account": "No account?",
+    "has_account": "Already have an account?",
+    "register_link": "Sign Up",
+    "login_link": "Sign In",
+    "success": "Check your email to confirm"
+  },
+  "share": {
+    "title": "Share Character",
+    "import_title": "Import",
+    "import_hint": "Recipient will add the character to their collection",
+    "view_title": "View Only",
+    "view_hint": "Character sheet without import option",
+    "generating": "Generating...",
+    "copy_import": "Copy import link",
+    "copy_view": "Copy view link",
+    "copied": "Copied!"
+  },
+  "view": {
+    "view_only": "View Only",
+    "not_found": "Character not found",
+    "not_found_hint": "The link is expired or incorrect",
+    "loading": "Loading..."
+  },
+  "systems": {
+    "fate-core": "Fate Core",
+    "fate-accelerated": "Accelerated",
+    "book-of-ashes": "Book of Ashes",
+    "player_badge": "Player",
+    "npc_badge": "NPC"
+  },
+  "edit_npc": {
+    "title": "Edit NPC",
+    "save": "Save Changes",
+    "no_name": "Enter an NPC name"
+  },
+  "encyclopedia": {
+    "title": "Encyclopedia",
+    "subtitle": "Skills, stunts, aspects and rules",
+    "search_placeholder": "Search...",
+    "count_skills": "{{count}} skills",
+    "count_stunts": "{{count}} stunts",
+    "not_found": "Nothing found",
+    "filter_all": "All",
+    "filter_all_skills": "All skills",
+    "usage": "Usage",
+    "tabs": {
+      "skills": "Skills",
+      "stunts": "Stunts",
+      "aspects": "Aspects",
+      "rules": "Rules"
+    }
+  },
+  "rules": {
+    "title": "Rules",
+    "subtitle": "Quick reference for mechanics",
+    "sections": "{{count}} sections"
+  },
+  "faq": {
+    "title": "FAQ",
+    "subtitle": "How to use the app — for beginners and beyond",
+    "rules_hint": "Looking for system rules?",
+    "rules_hint_sub": "Fate Core, FAE and Book of Ashes — quick mechanic references",
+    "rules_link": "Go to Rules →",
+    "cards": {
+      "start": {
+        "title": "Getting Started",
+        "q1": "What is this app?", "a1": "Fate Characters is a tool for managing characters in tabletop RPGs using the Fate system. Create character sheets, track stress during play, and run campaigns with other players in real time.",
+        "q2": "Where do I start?", "a2": "Click «+ Create» on the home screen, choose a system and fill in a name and aspects. Everything else can be added later. To play with others — create a campaign in the Campaigns tab.",
+        "q3": "Do I need an account?", "a3": "No. Everything works without an account — characters are stored in your browser. An account is only needed for syncing across devices and multiplayer campaigns.",
+        "q4": "Does it work offline?", "a4": "Yes. After the first visit the app is cached and works without internet. Data syncs automatically when you reconnect.",
+        "q5": "How do I install it on my phone?", "a5": "iOS: Safari → Share → Add to Home Screen. Android: Chrome will prompt automatically or use Menu → Add to Home Screen."
+      },
+      "characters": {
+        "title": "Characters",
+        "q1": "How do I create a character?", "a1": "Click «+ Create» on the home screen or in the Characters tab. Choose a system, fill in a name, aspects and skills. Stunts and equipment can be added later.",
+        "q2": "How do I track stress during play?", "a2": "Open the character, find the Stress section and click a box to mark it. For consequences, type text in the relevant field. Changes save automatically.",
+        "q3": "Where do I manage fate points?", "a3": "Fate points are shown on the character sheet. Click «+» and «−» to spend and gain. Starting amount equals the refresh value (default 3).",
+        "q4": "What is the difference between a character and an NPC?", "a4": "Characters are player characters. NPCs are non-player characters controlled by the GM. In a campaign the GM controls NPC visibility for players.",
+        "q5": "How do I share a character?", "a5": "Open the character → Share button. Two link types: Import — recipient adds a copy; View Only — they see the sheet without editing.",
+        "q6": "How do I export / import a character?", "a6": "Open character → disk icon → a JSON file downloads. To import — click the import icon on the home screen and select the file."
+      },
+      "campaigns": {
+        "title": "Campaigns",
+        "q1": "What is a campaign?", "a1": "A shared space for the GM and players. All characters are visible in real time and the GM manages NPC visibility.",
+        "q2": "How do I create a campaign?", "a2": "Campaigns tab → New Campaign. Choose a name, system and role — GM or Player. The role is set once at creation.",
+        "q3": "How do I invite players?", "a3": "Enter the campaign room → Invite. A 6-character code and link appear. Send either to the player — they enter the code at /join.",
+        "q4": "How do I join a campaign?", "a4": "Get the code from the GM → go to /join or use the invite link. An account is required. After joining the campaign appears with the Player role.",
+        "q5": "How do I assign a character to a campaign?", "a5": "Open the Campaigns tab, expand the campaign and click «+ to campaign» next to your character.",
+        "q6": "Are stress updates visible in real time?", "a6": "Yes. When a character is in a campaign and you are in the room — stress, consequences and fate points update instantly for everyone.",
+        "q7": "How does the GM control NPC visibility?", "a7": "In the campaign room each NPC has Visible/Hidden and Fields buttons. By default NPCs are hidden from players."
+      },
+      "sync": {
+        "title": "Sync",
+        "q1": "How does sync work?", "a1": "On sign-in local and server data are merged — the more recent version wins. When you change a character the data is sent to the server automatically.",
+        "q2": "How do I use multiple devices?", "a2": "Sign into the same account on both devices. Data syncs on open. For an immediate update — press sync in the account menu.",
+        "q3": "I lost my data — what now?", "a3": "If you have an account — sign in and press sync. If data was local only — it cannot be recovered. Export your characters regularly using the disk icon."
+      }
+    }
+  },
+  "create_character": {
+    "title": "New Character",
+    "name_label": "Character Name",
+    "name_placeholder": "What is the character's name?",
+    "save": "Save Character",
+    "no_name": "Enter a character name"
+  },
+  "create_npc": {
+    "title": "New NPC",
+    "name_label": "NPC Name",
+    "name_placeholder": "What is the character's name?",
+    "save": "Save NPC",
+    "save_as_template": "Save as Template",
+    "no_name": "Enter an NPC name"
+  },
+  "edit_character": {
+    "title": "Edit",
+    "save": "Save Changes",
+    "no_name": "Enter a character name"
+  },
+  "not_found": {
+    "title": "Page not found",
+    "hint": "Looks like you wandered into an aspect-free zone",
+    "back": "← Back to home"
+  },
+  "notes": {
+    "label": "Notes",
+    "placeholder": "Write something useful: story details, connections, plans, quotes...",
+    "chars": "{{count}} characters",
+    "private": "Notes are visible only to you"
+  },
+  "refresh": {
+    "current": "Current points"
+  },
+  "scars": {
+    "label": "Scars",
+    "warning": "⚠️ Fourth — the end",
+    "hint": "A scar permanently replaces a character aspect. At the 4th scar the character becomes Darkness. Scars ignore the one-bonus rule — each gives +2 independently.",
+    "scar_n": "Scar {{n}}",
+    "placeholder": "«I [description], so I [bonus], but [downside]»"
+  },
+  "skill_advancement": {
+    "title": "Skill Advancement",
+    "count": "{{count}} skills",
+    "hint": "Click + and − to change the rating. At −1 below zero the skill is removed.",
+    "add": "+ Add new skill",
+    "level": "Level:",
+    "cancel": "Cancel",
+    "rating_1": "Average",
+    "rating_2": "Fair",
+    "rating_3": "Good",
+    "rating_4": "Great",
+    "rating_5": "Superb",
+    "rating_6": "Fantastic",
+    "rating_7": "Epic",
+    "rating_8": "Legendary",
+    "rating_9": "Supernatural",
+    "rating_10": "Absolute",
+    "rating_n": "Level {{n}}"
+  },
+  "skill_pyramid": {
+    "skill_count_1": "skill",
+    "skill_count_2_4": "skills",
+    "skill_count_many": "skills"
+  },
+  "skill_badge": {
+    "0": "+0 Mediocre",
+    "1": "+1 Average",
+    "2": "+2 Fair",
+    "3": "+3 Good",
+    "4": "+4 Great",
+    "5": "+5 Superb",
+    "6": "+6 Fantastic",
+    "7": "+7 Epic",
+    "8": "+8 Legendary",
+    "9": "+9 Supernatural",
+    "10": "+10 Absolute"
+  },
+  "aspect_examples": {
+    "high-concept": ["Former soldier seeking redemption", "Smuggler with a heart of gold", "Court mage serving two masters"],
+    "trouble": ["Debts owed to very dangerous people", "Can't walk past someone in need", "My brother fights for the enemy"],
+    "aspect-1": ["Grew up in the streets of the Lower City", "Trained by the finest swordsman of the age", "A vow I cannot break"],
+    "aspect-2": ["Always find a way around", "Old ties in the criminal underworld", "A scar that recalls defeat"],
+    "aspect-3": ["The inquisitors are hunting me", "Loyal to my own until the end", "Money solves everything — almost"],
+    "concept": ["Guard of the Ash Road who lost their squad", "Relic trader with a dark past", "Flame novice who doubts her faith"],
+    "vice": ["Drowns fear in wine and gambling", "Violence is the only language I know", "Greed overrides common sense"],
+    "bright-side": ["Never leaves the wounded behind", "Faith in the Flame still flickers", "Protects children at any cost"],
+    "phase-1": ["Survived the massacre at Grey Pass", "Once betrayed a friend — I remember", "My first campaign taught me to fear the Dark"],
+    "phase-2": ["Helped a stranger and gained an ally", "Accidental witness to someone else's secret", "My intervention changed another's fate"]
+  },
+  "stress_tracks": {
+    "physical": "Physical Stress",
+    "mental": "Mental Stress",
+    "physical_short": "Physical",
+    "mental_short": "Mental",
+    "stress_only": "Stress"
+  },
+  "themes": {
+    "light": "Light",
+    "dark": "Dark",
+    "fate-core": "Fate Core",
+    "fate-accelerated": "Accelerated",
+    "book-of-ashes": "Book of Ashes",
+    "auto_save": "Theme saves automatically"
+  },
+  "aspect_slots": {
+    "high-concept": { "label": "High Concept",   "placeholder": "Who is your character in a few words?" },
+    "trouble":      { "label": "Trouble",         "placeholder": "What complicates your character's life?" },
+    "aspect-1":     { "label": "Aspect",          "placeholder": "Free aspect" },
+    "aspect-2":     { "label": "Aspect",          "placeholder": "Free aspect" },
+    "aspect-3":     { "label": "Aspect",          "placeholder": "Free aspect" },
+    "concept":      { "label": "Concept",         "placeholder": "Who is this person and why are they on the Ash March?" },
+    "vice":         { "label": "Vice",            "placeholder": "An inner weakness or dark side" },
+    "bright-side":  { "label": "Bright Side",     "placeholder": "The good that keeps them from breaking completely" },
+    "phase-1":      { "label": "Phase 1 Aspect",  "placeholder": "From your own adventure" },
+    "phase-2":      { "label": "Phase 2 Aspect",  "placeholder": "From someone else's adventure where you appeared" }
+  },
+  "filter": {
+    "all": "All"
+  },
+  "system_selector": {
+    "title": "System",
+    "selected": "✓ Selected",
+    "fate_core_details": ["18 skills", "Pyramid up to +4", "5 aspects", "Up to 5 stunts"],
+    "fae_details": ["6 approaches", "Approach ratings", "5 aspects", "Up to 3 stunts"],
+    "boa_details": ["20 skills", "Pyramid up to +3", "Scars", "6 equipment slots"]
+  },
+  "modal": {
+    "cancel": "Cancel",
+    "delete_title": "Delete character?",
+    "delete_forever": "This action cannot be undone.",
+    "delete_named": "Character {{name}} will be permanently deleted."
+  },
+  "npc_template": {
+    "search_placeholder": "Search templates...",
+    "not_found": "No results for «{{query}}»",
+    "section_builtin": "Templates",
+    "section_custom": "My Templates",
+    "skip": "Start with blank NPC →",
+    "delete_confirm": "Delete this template?",
+    "my_template": "My template",
+    "save_title": "Save as Template",
+    "save_name_label": "Template name",
+    "save_name_placeholder": "e.g. City Guard",
+    "save_icon_label": "Icon",
+    "save_preview_label": "My template"
+  },
+  "stunts_section": {
+    "add_custom": "+ Custom Stunt",
+    "add_library": "From Library",
+    "library_title": "Stunt Library",
+    "library_search": "Search stunts...",
+    "library_all": "All",
+    "library_empty": "Nothing found",
+    "stunt_name_placeholder": "Stunt name",
+    "stunt_desc_placeholder": "Description: what does this stunt do?"
+  },
+  "skill_selector": {
+    "placeholder": "— select skill —"
+  },
+  "stress_section": {
+    "title": "Stress & Consequences",
+    "consequences_label": "Consequences"
+  },
+  "sheet": {
+    "empty_aspect": "Not filled",
+    "current_fp": "Current",
+    "consequence_empty": "Empty",
+    "consequence_mild": "Mild (−2)",
+    "consequence_moderate": "Moderate (−4)",
+    "consequence_severe": "Severe (−6)",
+    "equipment_hint": "Equipment ignores the one-bonus rule. Weapons take slots equal to damage. Armor = free invokes for defense.",
+    "slots_used": "{{used}} / {{total}} slots",
+    "slots_label": "Slots:",
+    "invokes_label": "Invokes:",
+    "item_name_placeholder": "Item name (aspect)",
+    "equipment_type_weapon": "Weapon",
+    "equipment_type_armor": "Armor",
+    "equipment_type_resource": "Resource",
+    "equipment_type_relic": "Relic",
+    "equipment_type_empty": "— empty —"
+  },
+  "sections": {
+    "aspects": "Aspects",
+    "approaches": "Approaches",
+    "approaches_hint": "Distribute ratings: +3, +2, +2, +1, +1, +0",
+    "required_aspect": "Required aspect",
+    "examples": "Examples",
+    "examples_hint": "Click an example to use it",
+    "rating_3": "Good (+3)",
+    "rating_2": "Fair (+2)",
+    "rating_1": "Average (+1)",
+    "rating_0": "Mediocre (+0)"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Done",
+    "back": "Back",
+    "create": "Create",
+    "edit": "Edit",
+    "done": "Done",
+    "questions": "{{count}} questions"
+  }
+}

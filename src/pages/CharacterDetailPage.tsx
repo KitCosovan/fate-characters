@@ -1,5 +1,7 @@
+// src/pages/CharacterDetailPage.tsx
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCharacterStore } from '../store/characterStore'
 import { useCampaignStore } from '../store/campaignStore'
 import { fetchRemoteCharacterById } from '../utils/supabaseSync'
@@ -8,75 +10,48 @@ import CharacterSheet from '../components/character/CharacterSheet'
 import ShareModal from '../components/ui/ShareModal'
 import ToastNotifications from '../components/ui/ToastNotifications'
 import { exportCharacter, getSystemConfig } from '../utils'
+import { useLocalizedSystemConfig } from '../hooks/useLocalizedSystemConfig'
 import { useToast } from '../hooks/useToast'
 import type { Character, NpcVisibleField } from '../types'
 import SkillAdvancement from '../components/character/SkillAdvancement'
 import { IconEdit, IconSave, IconShare, IconDelete, IconBack, IconAdvancement, IconNotFound } from '../components/ui/FateIcons'
 
-const SYSTEM_LABELS: Record<string, string> = {
-  'fate-core': 'Fate Core',
-  'fate-accelerated': 'Fate Accelerated',
-  'book-of-ashes': 'Книга Пепла',
-}
-
-// Применить ограничения видимых полей НПС для игроков
 function applyNpcVisibleFields(character: Character, visibleFields: NpcVisibleField[]): Character {
-  if (!visibleFields.length) return character // пустой массив = всё видно
-
+  if (!visibleFields.length) return character
   const show = new Set(visibleFields)
-
   return {
     ...character,
-    // Скрыть аспекты если не разрешены
-    aspects: show.has('aspects') || show.has('concept')
-      ? character.aspects.map(a => {
-          // Концепция — отдельный флаг
-          if ((a.slotId === 'high-concept' || a.slotId === 'concept') && !show.has('concept')) {
-            return { ...a, value: '???' }
-          }
-          if (a.slotId !== 'high-concept' && a.slotId !== 'concept' && !show.has('aspects')) {
-            return { ...a, value: '???' }
-          }
-          return a
-        })
-      : character.aspects.map(a => ({ ...a, value: '???' })),
-    // Скрыть навыки
-    skills: show.has('skills') ? character.skills : [],
-    // Скрыть стресс
-    stressTracks: show.has('stress')
-      ? character.stressTracks
-      : character.stressTracks.map(t => ({ ...t, boxes: t.boxes.map(b => ({ ...b, checked: false })) })),
-    // Скрыть последствия
-    consequences: show.has('consequences')
-      ? character.consequences
-      : character.consequences.map(c => ({ ...c, value: '' })),
-    // Скрыть трюки
-    stunts: show.has('stunts') ? character.stunts : [],
+    aspects: character.aspects.map(a => {
+      if ((a.slotId === 'high-concept' || a.slotId === 'concept') && !show.has('concept')) return { ...a, value: '???' }
+      if (a.slotId !== 'high-concept' && a.slotId !== 'concept' && !show.has('aspects')) return { ...a, value: '???' }
+      return a
+    }),
+    skills:       show.has('skills')       ? character.skills       : [],
+    stressTracks: show.has('stress')       ? character.stressTracks : character.stressTracks.map(t => ({ ...t, boxes: t.boxes.map(b => ({ ...b, checked: false })) })),
+    consequences: show.has('consequences') ? character.consequences : character.consequences.map(c => ({ ...c, value: '' })),
+    stunts:       show.has('stunts')       ? character.stunts       : [],
   }
 }
 
 export default function CharacterDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { getById, updateCharacter, removeCharacter } = useCharacterStore()
   const campaigns = useCampaignStore(s => s.campaigns)
 
   const localCharacter = getById(id ?? '')
   const [character, setCharacter] = useState<Character | undefined>(localCharacter)
-  const [loading, setLoading] = useState(!localCharacter)
-  const [notFound, setNotFound] = useState(false)
+  const [loading, setLoading]     = useState(!localCharacter)
+  const [notFound, setNotFound]   = useState(false)
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
-  const { toasts, showToast, removeToast } = useToast()
+  const [showShareModal, setShowShareModal]   = useState(false)
+  const { toasts, showToast, removeToast }    = useToast()
   const [showAdvancement, setShowAdvancement] = useState(false)
 
   useEffect(() => {
-    if (localCharacter) {
-      setCharacter(localCharacter)
-      setLoading(false)
-      return
-    }
+    if (localCharacter) { setCharacter(localCharacter); setLoading(false); return }
     if (!id) { setNotFound(true); return }
     setLoading(true)
     fetchRemoteCharacterById(id).then(remote => {
@@ -86,52 +61,44 @@ export default function CharacterDetailPage() {
     })
   }, [id])
 
-  useEffect(() => {
-    if (localCharacter) setCharacter(localCharacter)
-  }, [localCharacter])
+  useEffect(() => { if (localCharacter) setCharacter(localCharacter) }, [localCharacter])
 
-  // Роль в кампании персонажа
-  const campaign = character?.campaignId
-    ? campaigns.find(c => c.id === character.campaignId)
-    : undefined
-  const isGm = campaign?.userRole === 'gm'
+  const campaign = character?.campaignId ? campaigns.find(c => c.id === character.campaignId) : undefined
+  const isGm     = campaign?.userRole === 'gm'
+  const isOwner  = !character?.ownerId
 
-  // isOwner: нет ownerId = локальный = мой
-  const isOwner = !character?.ownerId
-
-  // Применить фильтр полей НПС для игроков
   const displayCharacter = useMemo(() => {
     if (!character) return character
-    if (!character.isNpc) return character
-    if (isOwner || isGm) return character // владелец и ГМ видят всё
-    // Игрок — применяем visible_fields
-    const fields = character.visibleFields ?? []
-    return applyNpcVisibleFields(character, fields as NpcVisibleField[])
+    if (!character.isNpc || isOwner || isGm) return character
+    return applyNpcVisibleFields(character, (character.visibleFields ?? []) as NpcVisibleField[])
   }, [character, isOwner, isGm])
 
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
-      Загрузка...
+      {t('character.loading')}
     </div>
   )
 
   if (notFound || !displayCharacter) return (
     <div style={{ textAlign: 'center', padding: '64px 0' }}>
       <p style={{ marginBottom: '12px' }}><IconNotFound size={64} /></p>
-      <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>Персонаж не найден</p>
-      <Button variant="ghost" onClick={() => navigate(-1)}>← Назад</Button>
+      <p style={{ fontSize: '16px', color: 'var(--text-dim)', marginBottom: '16px' }}>{t('character.not_found')}</p>
+      <Button variant="ghost" onClick={() => navigate(-1)}>← {t('common.back')}</Button>
     </div>
   )
 
-  const config = getSystemConfig(displayCharacter.systemId)
+  const config = useLocalizedSystemConfig(displayCharacter.systemId)
 
-  const handleUpdate = (updated: Character) => {
-    updateCharacter(updated)
-    setCharacter(updated)
+  const SYSTEM_LABELS: Record<string, string> = {
+    'fate-core':        t('systems.fate-core'),
+    'fate-accelerated': t('systems.fate-accelerated'),
+    'book-of-ashes':    t('systems.book-of-ashes'),
   }
+
+  const handleUpdate = (updated: Character) => { updateCharacter(updated); setCharacter(updated) }
   const handleNotesChange = (notes: string) => handleUpdate({ ...displayCharacter, notes })
   const handleDelete = () => { removeCharacter(displayCharacter.id); navigate(-1) }
-  const handleExport = () => { exportCharacter(displayCharacter); showToast('Персонаж сохранён как JSON') }
+  const handleExport = () => { exportCharacter(displayCharacter); showToast(t('character.exported')) }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '32px' }}>
@@ -140,17 +107,17 @@ export default function CharacterDetailPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => navigate(-1)} style={{
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: '8px', color: 'var(--text-dim)', width: '32px', height: '32px',
-            cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '8px',
+            color: 'var(--text-dim)', width: '32px', height: '32px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}><IconBack size={20} /></button>
           <div>
             <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-              {displayCharacter.name}
+              {displayCharacter.name || t('character.unnamed')}
             </h1>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-              {displayCharacter.isNpc ? 'НПС' : 'Персонаж'} · {SYSTEM_LABELS[displayCharacter.systemId] ?? displayCharacter.systemId}
-              {!isOwner && <span style={{ marginLeft: '8px', color: 'var(--accent)', fontWeight: 600 }}>· просмотр</span>}
+              {displayCharacter.isNpc ? t('character.npc') : t('character.player')} · {SYSTEM_LABELS[displayCharacter.systemId] ?? displayCharacter.systemId}
+              {!isOwner && <span style={{ marginLeft: '8px', color: 'var(--accent)', fontWeight: 600 }}>· {t('character.view_only')}</span>}
             </p>
           </div>
         </div>
@@ -183,7 +150,7 @@ export default function CharacterDetailPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           }}>
             <span><IconAdvancement size={18} /></span>
-            {showAdvancement ? 'Скрыть развитие' : 'Развитие навыков'}
+            {showAdvancement ? t('character.advancement_hide') : t('character.advancement')}
           </button>
           {showAdvancement && (
             <div className="fade-up">
@@ -202,13 +169,13 @@ export default function CharacterDetailPage() {
           <Modal
             isOpen={showDeleteModal}
             onClose={() => setShowDeleteModal(false)}
-            title="Удалить персонажа?"
-            confirmLabel="Удалить"
+            title={t('character.delete_confirm')}
+            confirmLabel={t('common.delete')}
             confirmVariant="danger"
             onConfirm={handleDelete}
           >
             <p style={{ margin: 0 }}>
-              Персонаж <strong style={{ color: 'var(--text)' }}>{displayCharacter.name}</strong> будет удалён безвозвратно.
+              {t('character.delete_body', { name: displayCharacter.name || t('character.unnamed') })}
             </p>
           </Modal>
           <ShareModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} character={displayCharacter} />

@@ -1,6 +1,8 @@
+// src/components/layout/Navbar.tsx
 import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { IconFire, IconBook, IconSun, IconMoon, IconSwords, IconLightning } from '../ui/FateIcons'
 import UserMenu from '../auth/UserMenu'
 
@@ -33,6 +35,7 @@ function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label
 
 export default function Navbar() {
   const { themeId, theme, themes, setTheme } = useTheme()
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -46,60 +49,47 @@ export default function Navbar() {
 
   return (
     <header style={{
-      background: 'var(--surface)',
-      borderBottom: '1px solid var(--border)',
-      position: 'sticky', top: 0, zIndex: 40,
-      paddingTop: 'env(safe-area-inset-top)',
+      background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+      position: 'sticky', top: 0, zIndex: 40, paddingTop: 'env(safe-area-inset-top)',
     }}>
       <div style={{
         maxWidth: '672px', margin: '0 auto', padding: '0 16px',
         height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
       }}>
-
-        {/* Логотип */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <IconFire size={24} />
           <span style={{ fontFamily: 'Cinzel, serif', fontWeight: 700, fontSize: '15px', color: 'var(--accent)', letterSpacing: '0.06em' }}>
-            FATE CHARACTERS
+            {t('nav.title')}
           </span>
         </Link>
 
-        {/* Навигационные ссылки */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <NavLink to="/encyclopedia" icon={<IconBook size={16} />} label="Энциклопедия" />
+          <NavLink to="/encyclopedia" icon={<IconBook size={16} />} label={t('nav.encyclopedia')} />
           <NavLink to="/rules" icon={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
             </svg>
-          } label="Правила" />
+          } label={t('nav.rules')} />
           <NavLink to="/faq" icon={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
+              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
-          } label="FAQ" />
+          } label={t('nav.faq')} />
         </div>
 
-        {/* Переключатель тем */}
         <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-          <button
-            onClick={() => setOpen(o => !o)}
-            style={{
-              background: 'var(--surface-2)', border: '1px solid var(--border)',
-              borderRadius: '20px', padding: '6px 14px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '6px',
-              fontSize: '12px', fontWeight: 600, color: 'var(--text-dim)',
-              fontFamily: 'DM Sans, sans-serif', transition: 'all 0.15s ease',
-            }}
+          <button onClick={() => setOpen(o => !o)} style={{
+            background: 'var(--surface-2)', border: '1px solid var(--border)',
+            borderRadius: '20px', padding: '6px 14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '12px', fontWeight: 600, color: 'var(--text-dim)',
+            fontFamily: 'DM Sans, sans-serif', transition: 'all 0.15s ease',
+          }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-accent)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
           >
-            <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center' }}>
-              {THEME_ICONS[themeId]}
-            </div>
-            <span>{theme.name}</span>
+            <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center' }}>{THEME_ICONS[themeId]}</div>
+            <span>{t(`themes.${themeId}`, theme.name)}</span>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
           </button>
 
@@ -110,29 +100,27 @@ export default function Navbar() {
               borderRadius: '14px', padding: '6px', minWidth: '180px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)', zIndex: 100,
             }}>
-              {themes.map(t => (
-                <button key={t.id} onClick={() => { setTheme(t.id); setOpen(false) }} style={{
+              {themes.map(th => (
+                <button key={th.id} onClick={() => { setTheme(th.id); setOpen(false) }} style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
                   padding: '9px 12px', borderRadius: '9px', border: 'none',
-                  background: themeId === t.id ? 'var(--surface-3)' : 'transparent',
+                  background: themeId === th.id ? 'var(--surface-3)' : 'transparent',
                   cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px',
-                  fontWeight: themeId === t.id ? 600 : 400,
-                  color: themeId === t.id ? 'var(--text)' : 'var(--text-dim)',
+                  fontWeight: themeId === th.id ? 600 : 400,
+                  color: themeId === th.id ? 'var(--text)' : 'var(--text-dim)',
                   textAlign: 'left', transition: 'background 0.1s',
                 }}
-                  onMouseEnter={e => { if (themeId !== t.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
-                  onMouseLeave={e => { if (themeId !== t.id) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                  onMouseEnter={e => { if (themeId !== th.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
+                  onMouseLeave={e => { if (themeId !== th.id) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
-                  <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                    {THEME_ICONS[t.id]}
-                  </div>
-                  <span>{t.name}</span>
-                  {themeId === t.id && <span style={{ marginLeft: 'auto', color: 'var(--accent)', fontSize: '12px' }}>✓</span>}
+                  <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', flexShrink: 0 }}>{THEME_ICONS[th.id]}</div>
+                  <span>{t(`themes.${th.id}`, th.name)}</span>
+                  {themeId === th.id && <span style={{ marginLeft: 'auto', color: 'var(--accent)', fontSize: '12px' }}>✓</span>}
                 </button>
               ))}
               <div style={{ height: '1px', background: 'var(--border)', margin: '6px 0' }} />
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', padding: '4px 12px', margin: 0 }}>
-                Тема сохраняется автоматически
+                {t('themes.auto_save')}
               </p>
             </div>
           )}

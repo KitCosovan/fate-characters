@@ -1,6 +1,7 @@
 // src/pages/HomePage.tsx
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCharacterStore } from '../store/characterStore'
 import { Button, Card, Badge, Modal } from '../components/ui'
 import { exportAllCharacters, importCharacterFromFile, importAllFromFile, decodeCharacterFromUrl } from '../utils'
@@ -16,14 +17,9 @@ import CampaignsTab from '../components/campaigns/CampaignsTab'
 
 type Tab = 'characters' | 'npcs' | 'campaigns'
 
-const SYSTEM_LABELS: Record<string, string> = {
-  'fate-core': 'Fate Core',
-  'fate-accelerated': 'Accelerated',
-  'book-of-ashes': 'Книга Пепла',
-}
-
 export default function HomePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { characters, addCharacter } = useCharacterStore()
 
   const [tab, setTab] = useState<Tab>('characters')
@@ -45,10 +41,16 @@ export default function HomePage() {
   }, [])
 
   const TABS = [
-    { id: 'characters' as Tab, label: 'Персонажи', icon: <IconCharacter size={16} /> },
-    { id: 'npcs' as Tab, label: 'НПС', icon: <IconNpc size={16} /> },
-    { id: 'campaigns' as Tab, label: 'Кампании', icon: <IconMasks size={16} /> },
+    { id: 'characters' as Tab, label: t('tabs.characters'), icon: <IconCharacter size={16} /> },
+    { id: 'npcs' as Tab,       label: t('tabs.npcs'),       icon: <IconNpc size={16} /> },
+    { id: 'campaigns' as Tab,  label: t('tabs.campaigns'),  icon: <IconMasks size={16} /> },
   ]
+
+  const SYSTEM_LABELS: Record<string, string> = {
+    'fate-core':        t('systems.fate-core'),
+    'fate-accelerated': t('systems.fate-accelerated'),
+    'book-of-ashes':    t('systems.book-of-ashes'),
+  }
 
   const filtered = characters.filter(c => {
     if (tab === 'campaigns') return false
@@ -56,9 +58,7 @@ export default function HomePage() {
     if (systemFilter && c.systemId !== systemFilter) return false
     if (search) {
       const q = search.toLowerCase()
-      const inName = c.name.toLowerCase().includes(q)
-      const inAspects = c.aspects.some(a => a.value.toLowerCase().includes(q))
-      if (!inName && !inAspects) return false
+      if (!c.name.toLowerCase().includes(q) && !c.aspects.some(a => a.value.toLowerCase().includes(q))) return false
     }
     return true
   })
@@ -74,10 +74,10 @@ export default function HomePage() {
       } catch {
         const chars = await importAllFromFile(file)
         chars.forEach(c => addCharacter({ ...c, id: generateId() }))
-        showToast(`Импортировано ${chars.length} персонажей`)
+        showToast(t('character.imported', { name: `${chars.length}` }))
       }
     } catch {
-      showToast('Ошибка импорта', 'error')
+      showToast(t('character.import_error'), 'error')
     }
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -87,21 +87,28 @@ export default function HomePage() {
     addCharacter({ ...pendingImport, id: generateId() })
     setPendingImport(null)
     setShowImportModal(false)
-    showToast(`${pendingImport.name || 'Персонаж'} импортирован`)
+    showToast(t('character.imported', { name: pendingImport.name || t('character.unnamed') }))
   }
+
+  const tabTitle = tab === 'npcs'
+    ? t('home.title_npcs')
+    : tab === 'campaigns'
+      ? t('home.title_campaigns')
+      : t('home.title_characters')
 
   return (
     <div className="fade-up">
-
       {/* Шапка */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-            {tab === 'npcs' ? 'НПС' : tab === 'campaigns' ? 'Кампании' : 'Персонажи'}
+            {tabTitle}
           </h1>
           {tab !== 'campaigns' && (
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-              {filtered.length} {filtered.length === 1 ? 'запись' : filtered.length < 5 ? 'записи' : 'записей'}
+              {filtered.length} {filtered.length === 1
+                ? t('home.count_one', { count: filtered.length })
+                : t('home.count_many', { count: filtered.length })}
             </p>
           )}
         </div>
@@ -113,12 +120,12 @@ export default function HomePage() {
                 <IconImport size={18} />
               </Button>
               {characters.length > 0 && (
-                <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast('Бэкап сохранён') }}>
+                <Button variant="secondary" size="sm" onClick={() => { exportAllCharacters(characters); showToast(t('character.backup_saved')) }}>
                   <IconSave size={18} />
                 </Button>
               )}
               <Button size="sm" onClick={() => navigate(tab === 'npcs' ? '/npc/create' : '/character/create')}>
-                + Создать
+                {t('home.create')}
               </Button>
             </>
           )}
@@ -128,8 +135,7 @@ export default function HomePage() {
       {/* Вкладки */}
       <div style={{
         display: 'flex', gap: '4px', background: 'var(--surface)',
-        borderRadius: '12px', padding: '4px', marginBottom: '12px',
-        border: '1px solid var(--border)',
+        borderRadius: '12px', padding: '4px', marginBottom: '12px', border: '1px solid var(--border)',
       }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -151,16 +157,18 @@ export default function HomePage() {
       {tab !== 'campaigns' && (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-            <SearchBar value={search} onChange={setSearch} />
+            <SearchBar value={search} onChange={setSearch} placeholder={t('home.search_placeholder')} />
             <FilterPanel selected={systemFilter} onChange={setSystemFilter} />
           </div>
 
           {filtered.length === 0 ? (
             <EmptyState
               icon={tab === 'npcs' ? <IconNpc size={64} /> : <IconCharacter size={64} />}
-              title={search ? 'Ничего не найдено' : tab === 'npcs' ? 'НПС пока нет' : 'Персонажей пока нет'}
-              description={search ? `По запросу «${search}» ничего не найдено` : 'Нажми «Создать» чтобы начать'}
-              action={!search ? { label: '+ Создать', onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create') } : undefined}
+              title={search
+                ? t('home.no_results')
+                : tab === 'npcs' ? t('home.empty_npcs') : t('home.empty_characters')}
+              description={search ? t('home.no_results_hint', { query: search }) : t('home.empty_hint')}
+              action={!search ? { label: t('home.create'), onClick: () => navigate(tab === 'npcs' ? '/npc/create' : '/character/create') } : undefined}
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -170,15 +178,17 @@ export default function HomePage() {
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' }}>
-                          {c.name || 'Без имени'}
+                          {c.name || t('character.unnamed')}
                         </p>
                         <p style={{ fontSize: '13px', color: 'var(--text-dim)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || 'Концепция не заполнена'}
+                          {c.aspects.find(a => a.slotId === 'high-concept' || a.slotId === 'concept')?.value || t('character.concept_empty')}
                         </p>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
                         <Badge variant="accent">{SYSTEM_LABELS[c.systemId] ?? c.systemId}</Badge>
-                        <Badge variant={c.isNpc ? 'dim' : 'green'}>{c.isNpc ? 'НПС' : 'Игрок'}</Badge>
+                        <Badge variant={c.isNpc ? 'dim' : 'green'}>
+                          {c.isNpc ? t('systems.npc_badge') : t('systems.player_badge')}
+                        </Badge>
                       </div>
                     </div>
                   </Card>
@@ -192,17 +202,17 @@ export default function HomePage() {
       <Modal
         isOpen={showImportModal}
         onClose={() => { setShowImportModal(false); setPendingImport(null) }}
-        title="Импортировать персонажа?"
-        confirmLabel="Импортировать"
+        title={t('character.import')}
+        confirmLabel={t('character.import_btn')}
         onConfirm={confirmImport}
       >
         {pendingImport && (
           <div>
             <p style={{ margin: '0 0 4px' }}>
-              Добавить <strong style={{ color: 'var(--text)' }}>{pendingImport.name || 'Без имени'}</strong>?
+              {t('character.import_body', { name: pendingImport.name || t('character.unnamed') })}
             </p>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-              Система: {SYSTEM_LABELS[pendingImport.systemId] ?? pendingImport.systemId}
+              {SYSTEM_LABELS[pendingImport.systemId] ?? pendingImport.systemId}
             </p>
           </div>
         )}

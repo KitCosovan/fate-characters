@@ -1,24 +1,16 @@
 // src/pages/ViewCharacterPage.tsx
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import type { Character } from '../types'
 import CharacterSheet from '../components/character/CharacterSheet'
 import { IconNotFound, IconBack } from '../components/ui/FateIcons'
 
-const SYSTEM_LABELS: Record<string, string> = {
-  'fate-core': 'Fate Core',
-  'fate-accelerated': 'Fate Accelerated',
-  'book-of-ashes': 'Книга Пепла',
-}
-
 async function loadCharacter(shortId?: string, base64?: string): Promise<Character | null> {
   if (shortId) {
     const { data, error } = await supabase
-      .from('shared_characters')
-      .select('data')
-      .eq('short_id', shortId)
-      .single()
+      .from('shared_characters').select('data').eq('short_id', shortId).single()
     if (error || !data) return null
     return data.data as Character
   }
@@ -32,11 +24,12 @@ export default function ViewCharacterPage() {
   const { shortId } = useParams<{ shortId?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const base64 = searchParams.get('shared') ?? undefined
 
   const [character, setCharacter] = useState<Character | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  const [loading, setLoading]     = useState(true)
+  const [notFound, setNotFound]   = useState(false)
 
   useEffect(() => {
     loadCharacter(shortId, base64).then(char => {
@@ -46,17 +39,23 @@ export default function ViewCharacterPage() {
     })
   }, [shortId, base64])
 
+  const SYSTEM_LABELS: Record<string, string> = {
+    'fate-core':        t('systems.fate-core'),
+    'fate-accelerated': t('systems.fate-accelerated'),
+    'book-of-ashes':    t('systems.book-of-ashes'),
+  }
+
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
-      Загрузка...
+      {t('view.loading')}
     </div>
   )
 
   if (notFound || !character) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
       <IconNotFound size={64} />
-      <p style={{ fontSize: '16px', color: 'var(--text-dim)', margin: 0 }}>Персонаж не найден</p>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>Ссылка устарела или некорректна</p>
+      <p style={{ fontSize: '16px', color: 'var(--text-dim)', margin: 0 }}>{t('view.not_found')}</p>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>{t('view.not_found_hint')}</p>
     </div>
   )
 
@@ -70,10 +69,10 @@ export default function ViewCharacterPage() {
         }}><IconBack size={20} /></button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {character.name || 'Без имени'}
+            {character.name || t('character.unnamed')}
           </h1>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-            {character.isNpc ? 'НПС' : 'Персонаж'} · {SYSTEM_LABELS[character.systemId] ?? character.systemId}
+            {character.isNpc ? t('character.npc') : t('character.player')} · {SYSTEM_LABELS[character.systemId] ?? character.systemId}
           </p>
         </div>
         <span style={{
@@ -81,7 +80,7 @@ export default function ViewCharacterPage() {
           background: 'var(--surface-2)', color: 'var(--text-muted)',
           border: '1px solid var(--border)', whiteSpace: 'nowrap', flexShrink: 0,
         }}>
-          👁 Только просмотр
+          👁 {t('view.view_only')}
         </span>
       </div>
       <CharacterSheet character={character} />

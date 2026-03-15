@@ -1,3 +1,5 @@
+// src/components/character/SkillSelector.tsx
+import { useTranslation } from 'react-i18next'
 import type { SkillDefinition } from '../../types'
 
 interface SkillSelectorProps {
@@ -8,20 +10,16 @@ interface SkillSelectorProps {
 }
 
 export default function SkillSelector({ skills, value, usedSkillIds, onChange }: SkillSelectorProps) {
+  const { t } = useTranslation()
   return (
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none
-        focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white flex-1"
+      className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white flex-1"
     >
-      <option value="">— выбрать навык —</option>
+      <option value="">{t('skill_selector.placeholder')}</option>
       {skills.map(skill => (
-        <option
-          key={skill.id}
-          value={skill.id}
-          disabled={usedSkillIds.includes(skill.id) && skill.id !== value}
-        >
+        <option key={skill.id} value={skill.id} disabled={usedSkillIds.includes(skill.id) && skill.id !== value}>
           {skill.name}
         </option>
       ))}

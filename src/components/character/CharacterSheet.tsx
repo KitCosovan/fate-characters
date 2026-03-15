@@ -1,10 +1,13 @@
+// src/components/character/CharacterSheet.tsx
+import { useTranslation } from 'react-i18next'
 import type { Character } from '../../types'
-import { getSystemConfig } from '../../utils'
+import { useLocalizedSystemConfig } from '../../hooks/useLocalizedSystemConfig'
 import { SectionTitle } from './AspectsSection'
 import SkillRatingBadge from './SkillRatingBadge'
 import StressTrack from './StressTrack'
 import ConsequenceSlot from './ConsequenceSlot'
 import NotesSection from './NotesSection'
+import { useStressLabel } from '../../hooks/useStressLabel'
 
 interface CharacterSheetProps {
   character: Character
@@ -14,7 +17,10 @@ interface CharacterSheetProps {
 }
 
 export default function CharacterSheet({ character, onStressChange, onConsequenceChange, onNotesChange }: CharacterSheetProps) {
-  const config = getSystemConfig(character.systemId)
+  const { t } = useTranslation()
+  const getStressLabel = useStressLabel
+  // Use localized config so aspect slot labels are translated
+  const config = useLocalizedSystemConfig(character.systemId)
   const isApproaches = config.skillMode === 'approaches'
 
   const maxRating = Math.max(...character.skills.map(s => s.rating), 4)
@@ -33,7 +39,7 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
 
       {/* Аспекты */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <SectionTitle>Аспекты</SectionTitle>
+        <SectionTitle>{t('sections.aspects')}</SectionTitle>
         {config.aspectSlots.map(slot => {
           const aspect = character.aspects.find(a => a.slotId === slot.id)
           return (
@@ -42,17 +48,14 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
                 {slot.label}
               </p>
               <p style={{
-                fontSize: '14px',
-                padding: '10px 14px',
-                borderRadius: '10px',
-                margin: 0,
+                fontSize: '14px', padding: '10px 14px', borderRadius: '10px', margin: 0,
                 background: aspect?.value ? 'var(--accent-glow)' : 'var(--surface-2)',
                 color: aspect?.value ? 'var(--text)' : 'var(--text-muted)',
                 fontStyle: aspect?.value ? 'normal' : 'italic',
                 border: aspect?.value ? '1px solid var(--border-accent)' : '1px solid var(--border)',
                 fontWeight: aspect?.value ? 500 : 400,
               }}>
-                {aspect?.value || 'Не заполнено'}
+                {aspect?.value || t('sheet.empty_aspect')}
               </p>
             </div>
           )
@@ -62,8 +65,7 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
       {/* Навыки / Подходы */}
       {skillsByRating.length > 0 && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <SectionTitle>{isApproaches ? 'Подходы' : 'Навыки'}</SectionTitle>
-
+          <SectionTitle>{isApproaches ? t('sections.approaches') : t('skills.label')}</SectionTitle>
           {isApproaches ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {config.skills.map(approach => {
@@ -73,10 +75,7 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
                   <div key={approach.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <p style={{ fontSize: '14px', color: 'var(--text)', margin: 0 }}>{approach.name}</p>
                     <span style={{
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      padding: '2px 10px',
-                      borderRadius: '20px',
+                      fontSize: '12px', fontWeight: 700, padding: '2px 10px', borderRadius: '20px',
                       background: rating > 0 ? 'var(--accent-glow)' : 'var(--surface-2)',
                       color: rating > 0 ? 'var(--accent)' : 'var(--text-muted)',
                       border: `1px solid ${rating > 0 ? 'var(--border-accent)' : 'var(--border)'}`,
@@ -92,12 +91,8 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '2px' }}>
                   {skills.map(skill => (
                     <span key={skill!.id} style={{
-                      fontSize: '13px',
-                      padding: '3px 10px',
-                      borderRadius: '8px',
-                      background: 'var(--surface-2)',
-                      color: 'var(--text)',
-                      border: '1px solid var(--border)',
+                      fontSize: '13px', padding: '3px 10px', borderRadius: '8px',
+                      background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)',
                     }}>
                       {skill!.name}
                     </span>
@@ -112,16 +107,11 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
       {/* Трюки */}
       {character.stunts.length > 0 && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <SectionTitle>Трюки</SectionTitle>
+          <SectionTitle>{t('stunts.label')}</SectionTitle>
           {character.stunts.map(stunt => (
-            <div key={stunt.id} style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              padding: '12px 14px',
-            }}>
+            <div key={stunt.id} style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px' }}>
               <p style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)', margin: 0 }}>
-                {stunt.name || 'Без названия'}
+                {stunt.name || t('stunts.none')}
               </p>
               {stunt.description && (
                 <p style={{ fontSize: '13px', color: 'var(--text-dim)', marginTop: '4px', marginBottom: 0 }}>
@@ -135,18 +125,17 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
 
       {/* Стресс */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <SectionTitle>Стресс</SectionTitle>
+        <SectionTitle>{t('stress.label')}</SectionTitle>
         {character.stressTracks.map(track => {
           const cfg = config.stressTracks.find(c => c.id === track.trackId)
+          const label = getStressLabel(cfg?.id ?? cfg?.label ?? track.trackId)
           return (
             <StressTrack
               key={track.trackId}
               track={track}
-              label={cfg?.label ?? track.trackId}
+              label={label}
               onChange={updated => {
-                const tracks = character.stressTracks.map(t =>
-                  t.trackId === updated.trackId ? updated : t
-                )
+                const tracks = character.stressTracks.map(t => t.trackId === updated.trackId ? updated : t)
                 onStressChange?.({ ...character, stressTracks: tracks })
               }}
             />
@@ -156,15 +145,13 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
 
       {/* Последствия */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <SectionTitle>Последствия</SectionTitle>
+        <SectionTitle>{t('consequences.label')}</SectionTitle>
         {character.consequences.map(c => (
           <ConsequenceSlot
             key={c.severity}
             consequence={c}
             onChange={updated => {
-              const consequences = character.consequences.map(x =>
-                x.severity === updated.severity ? updated : x
-              )
+              const consequences = character.consequences.map(x => x.severity === updated.severity ? updated : x)
               onConsequenceChange?.({ ...character, consequences })
             }}
           />
@@ -173,63 +160,42 @@ export default function CharacterSheet({ character, onStressChange, onConsequenc
 
       {/* Fate Points */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <SectionTitle>Fate Points</SectionTitle>
+        <SectionTitle>{t('fate_points.label')}</SectionTitle>
         <div style={{
-          display: 'flex',
-          gap: '16px',
-          background: 'var(--surface-2)',
-          border: '1px solid var(--border)',
-          borderRadius: '14px',
-          padding: '16px 20px',
+          display: 'flex', gap: '16px', background: 'var(--surface-2)',
+          border: '1px solid var(--border)', borderRadius: '14px', padding: '16px 20px',
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Refresh</p>
-            <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--accent)', fontFamily: 'Cinzel, serif', margin: 0 }}>
-              {character.refresh}
-            </p>
+            <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--accent)', fontFamily: 'Cinzel, serif', margin: 0 }}>{character.refresh}</p>
           </div>
           <div style={{ width: '1px', background: 'var(--border)' }} />
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Текущие</p>
-            <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--accent)', fontFamily: 'Cinzel, serif', margin: 0 }}>
-              {character.currentFatePoints}
-            </p>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>{t('sheet.current_fp')}</p>
+            <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--accent)', fontFamily: 'Cinzel, serif', margin: 0 }}>{character.currentFatePoints}</p>
           </div>
         </div>
       </section>
 
+      {/* Заметки */}
       {onNotesChange ? (
         <>
           <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
-          <section>
-            <NotesSection
-              notes={character.notes ?? ''}
-              onChange={onNotesChange}
-            />
-          </section>
+          <section><NotesSection notes={character.notes ?? ''} onChange={onNotesChange} /></section>
         </>
       ) : character.notes ? (
         <>
           <div style={{ width: '100%', height: '1px', background: 'var(--border)' }} />
           <section>
-            <SectionTitle>Заметки</SectionTitle>
+            <SectionTitle>{t('notes.label')}</SectionTitle>
             <p style={{
-              fontSize: '14px',
-              color: 'var(--text-dim)',
-              lineHeight: 1.6,
-              margin: 0,
-              whiteSpace: 'pre-wrap',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              padding: '12px 14px',
-            }}>
-              {character.notes}
-            </p>
+              fontSize: '14px', color: 'var(--text-dim)', lineHeight: 1.6, margin: 0,
+              whiteSpace: 'pre-wrap', background: 'var(--surface-2)', border: '1px solid var(--border)',
+              borderRadius: '12px', padding: '12px 14px',
+            }}>{character.notes}</p>
           </section>
         </>
       ) : null}
-
     </div>
   )
 }
