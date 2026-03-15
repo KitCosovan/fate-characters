@@ -1,73 +1,100 @@
-# React + TypeScript + Vite
+# Fate Characters
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Fate Characters** — это удобное веб-приложение для управления персонажами, NPC и кампаниями в настольных ролевых играх на базе системы **Fate** (Fate Core, Fate Accelerated и кастомной системы "Книга Пепла").
 
-Currently, two official plugins are available:
+Приложение создано для Мастеров Игры (GM) и Игроков, чтобы облегчить ведение листов персонажей, отслеживание аспектов, навыков и трюков, а также для удобной организации совместных кампаний.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🌟 Основные возможности
 
-## React Compiler
+- **Создание и управление персонажами**: Поддержка различных систем (Fate Core, Fate Accelerated, Книга Пепла) со специфичными для каждой механиками (Пирамида навыков, подходы, стресс, шрамы, экипировка и трюки).
+- **Организация кампаний**: Создание кампаний с распределением ролей (Мастер Игры или Игрок). Мастера имеют расширенный доступ к управлению NPC.
+- **База NPC**: Отдельный трекер для неигровых персонажей, помогающий Мастеру в проведении сцен.
+- **Мультиязычность (RU / EN)**: Приложение полностью переведено на русский и английский языки.
+- **Тёмная и светлая темы**: Приятный и атмосферный интерфейс с поддержкой Dark Mode.
+- **Справочные материалы**: Встроенная энциклопедия, правила и FAQ для быстрого поиска нужной информации прямо во время игры.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📸 Скриншоты
 
-## Expanding the ESLint configuration
+*(Примечание: для корректного отображения скриншотов поместите предоставленные изображения в папку `public/screenshots/` или обновите пути ниже)*
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Дашборд персонажей
+![Дашборд персонажей](./public/screenshots/image_0.png)
+*Просмотр списка персонажей, фильтрация по системам (Fate Core, Accelerated, Book of Ashes) и быстрый поиск по имени.*
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Дашборд NPC
+![Дашборд NPC](./public/screenshots/image_1.png)
+*Раздел управления неигровыми персонажами для Мастера Игры.*
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Кампании
+![Кампании](./public/screenshots/image_2.png)
+*Менеджмент игровых кампаний для совместной игры.*
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Создание новой кампании
+![Создание кампании](./public/screenshots/image_3.png)
+*Настройка названия, описания, системы правил, выбор вашей роли (Game Master / Player) и цветового оформления.*
+
+### Создание нового персонажа
+![Создание персонажа](./public/screenshots/image_4.png)
+*Выбор системы генерации: Fate Core (18 навыков, пирамида до +4), Fate Accelerated (6 подходов) или Книга Пепла (20 навыков, шрамы, слоты экипировки).*
+
+## 🛠 Технологии
+
+Этот проект построен с использованием современного фронтенд-стека:
+
+- **Frontend**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Сборка**: [Vite](https://vitejs.dev/)
+- **Стилизация**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Состояние**: [Zustand](https://zustand-demo.pmnd.rs/)
+- **Маршрутизация**: [React Router v7](https://reactrouter.com/)
+- **Локализация**: [i18next](https://www.i18next.com/)
+- **Backend & Auth**: [Supabase](https://supabase.com/)
+
+## 🚀 Установка и запуск (Locally)
+
+### Требования
+- Node.js (рекомендуется v18 или выше)
+- npm или yarn
+
+### Шаги по запуску
+
+1. **Клонируйте репозиторий:**
+   ```bash
+   git clone <url_вашего_репозитория>
+   cd fate-characters
+   ```
+
+2. **Установите зависимости:**
+   ```bash
+   npm install
+   ```
+
+3. **Настройте переменные окружения:**
+   Скопируйте пример файла `.env.example` или создайте файл `.env` в корне проекта и добавьте ключи доступа от вашего проекта [Supabase](https://supabase.com/):
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+   *(Убедитесь, что конфигурация Supabase настроена для работы с приложением)*
+
+4. **Запустите сервер для разработки:**
+   ```bash
+   npm run dev
+   ```
+
+5. Откройте `http://localhost:5173` в вашем браузере.
+
+## 📦 Сборка и Деплой
+
+Для создания оптимизированной production-сборки выполните команду:
+```bash
+npm run build
+```
+Готовые файлы будут находиться в папке `dist`.
+
+В проекте уже настроен деплой на GitHub Pages с помощью команды:
+```bash
+npm run deploy
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+*Сделано для фанатов настольных ролевых игр на базе системы Fate.*
