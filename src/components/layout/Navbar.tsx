@@ -53,7 +53,7 @@ export default function Navbar() {
       position: 'sticky', top: 0, zIndex: 40, paddingTop: 'env(safe-area-inset-top)',
     }}>
       <div style={{
-        maxWidth: '672px', margin: '0 auto', padding: '0 16px',
+        maxWidth: '960px', margin: '0 auto', padding: '0 24px',
         height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
       }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
@@ -67,12 +67,12 @@ export default function Navbar() {
           <NavLink to="/encyclopedia" icon={<IconBook size={16} />} label={t('nav.encyclopedia')} />
           <NavLink to="/rules" icon={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
           } label={t('nav.rules')} />
           <NavLink to="/faq" icon={
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           } label={t('nav.faq')} />
         </div>
@@ -89,8 +89,8 @@ export default function Navbar() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}
           >
             <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center' }}>{THEME_ICONS[themeId]}</div>
-            <span>{t(`themes.${themeId}`, theme.name)}</span>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
+            <span className="hide-on-mobile">{t(`themes.${themeId}`, theme.name)}</span>
+            <span className="hide-on-mobile" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
           </button>
 
           {open && (

@@ -108,7 +108,7 @@ function CampaignModal({ isOpen, onClose, onSave, initial }: CampaignModalProps)
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label style={labelStyle}>{t('campaigns.color_label')}</label>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingBottom: '4px', paddingTop: '2px' }}>
             {CAMPAIGN_COLORS.map(c => (
               <button key={c} onClick={() => setColor(c)} style={{
                 width: '32px', height: '32px', borderRadius: '50%', background: c,

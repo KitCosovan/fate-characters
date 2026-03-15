@@ -106,7 +106,7 @@ export default function HomePage() {
           </h1>
           {tab !== 'campaigns' && (
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-              {filtered.length} {filtered.length === 1
+              {filtered.length === 1
                 ? t('home.count_one', { count: filtered.length })
                 : t('home.count_many', { count: filtered.length })}
             </p>

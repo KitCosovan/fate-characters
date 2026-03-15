@@ -1,5 +1,6 @@
 // src/components/ui/Modal.tsx
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import Button from './Button'
 
@@ -25,28 +26,41 @@ export default function Modal({ isOpen, onClose, title, children, confirmLabel, 
 
   if (!isOpen) return null
 
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, overflowY: 'auto' }}>
+      {/* Backdrop */}
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 0 }}
+        onClick={onClose}
+      />
+      {/* Центрирующая обёртка */}
       <div style={{
-        position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: '20px', padding: '24px', width: '100%', maxWidth: '400px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5)', maxHeight: '90vh',
-        display: 'flex', flexDirection: 'column',
+        position: 'relative', zIndex: 1,
+        minHeight: '100%', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
       }}>
-        <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '16px', flexShrink: 0 }}>
-          {title}
-        </h2>
-        <div style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '24px', overflowY: 'auto', flex: 1 }}>
-          {children}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexShrink: 0 }}>
-          <Button variant="secondary" onClick={onClose}>{t('modal.cancel')}</Button>
-          {!hideConfirm && onConfirm && (
-            <Button variant={confirmVariant} onClick={onConfirm}>{confirmLabel}</Button>
-          )}
+        {/* Модалка */}
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: '20px', padding: '24px', width: '100%', maxWidth: '400px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        }}>
+          <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '16px' }}>
+            {title}
+          </h2>
+          <div style={{ fontSize: '14px', color: 'var(--text-dim)', marginBottom: '24px' }}>
+            {children}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button variant="secondary" onClick={onClose}>{t('modal.cancel')}</Button>
+            {!hideConfirm && onConfirm && (
+              <Button variant={confirmVariant} onClick={onConfirm}>{confirmLabel}</Button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
