@@ -6,6 +6,7 @@ import { stuntLibrary, type LibraryStunt } from '../../data/stuntLibrary'
 import { stuntLibraryEn } from '../../data/stuntLibraryEn'
 import { IconSearch } from '../ui/FateIcons'
 import { getSystemConfig } from '../../utils'
+import { useLocalizedSkillName } from '../../hooks/useLocalizedSkillName'
 
 interface StuntLibraryModalProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ export default function StuntLibraryModal({ isOpen, onClose, onSelect, systemId 
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
   const config = getSystemConfig(systemId)
   const skills = config.skills
+  const localizeSkillName = useLocalizedSkillName()  // ← добавлено
 
   const filtered = useMemo(() => activeLibrary.filter(s => {
     const systemMatch = s.systems.includes('all') || s.systems.includes(systemId)
@@ -38,7 +40,11 @@ export default function StuntLibraryModal({ isOpen, onClose, onSelect, systemId 
     return map
   }, [filtered])
 
-  const getSkillName = (skillId: string) => skills.find(s => s.id === skillId)?.name ?? skillId
+  // ← было skill.name, стало localizeSkillName(skill.id, skill.name)
+  const getSkillName = (skillId: string) => {
+    const skill = skills.find(s => s.id === skillId)
+    return skill ? localizeSkillName(skill.id, skill.name) : skillId
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t('stunts_section.library_title')} onConfirm={() => {}} hideConfirm>
@@ -67,7 +73,7 @@ export default function StuntLibraryModal({ isOpen, onClose, onSelect, systemId 
             if (count === 0) return null
             return (
               <button key={skill.id} onClick={() => setSelectedSkill(selectedSkill === skill.id ? null : skill.id)} style={{ padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600, fontFamily: 'DM Sans, sans-serif', background: selectedSkill === skill.id ? 'var(--accent-glow)' : 'var(--surface-2)', color: selectedSkill === skill.id ? 'var(--accent)' : 'var(--text-muted)', outline: selectedSkill === skill.id ? '1px solid var(--border-accent)' : '1px solid var(--border)' }}>
-                {skill.name}
+                {localizeSkillName(skill.id, skill.name)}  {/* ← было skill.name */}
               </button>
             )
           })}
