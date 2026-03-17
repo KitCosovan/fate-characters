@@ -16,7 +16,7 @@ interface StressSectionProps {
 
 export default function StressSection({ stressTracks, stressConfig, consequences, onStressChange, onConsequenceChange }: StressSectionProps) {
   const { t } = useTranslation()
-  const getLabel = useStressLabel
+  const getLabel = useStressLabel()
 
   const updateTrack = (updated: StressTrackType) => {
     onStressChange(stressTracks.map(tr => tr.trackId === updated.trackId ? updated : tr))

@@ -23,8 +23,6 @@ Fate Characters — это веб-приложение для управлени
 
 ## 📸 Интерфейс
 
-*(Для локального отображения поместите файлы в папку `public/screenshots/`)*
-
 ### Дашборд персонажей
 ![Дашборд персонажей](./public/screenshots/image_0.png)
 
@@ -49,11 +47,3 @@ Fate Characters — это веб-приложение для управлени
 * React Router v7
 * i18next
 * Supabase
-
-## 🚀 Установка локально
-
-1. Клонируйте репозиторий: `git clone <url>`
-2. Установите зависимости: `npm install`
-3. Создайте `.env` и добавьте `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`.
-4. Запустите проект: `npm run dev`
-5. Откройте `http://localhost:5173`

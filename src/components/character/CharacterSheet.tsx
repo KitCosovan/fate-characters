@@ -18,7 +18,7 @@ interface CharacterSheetProps {
 
 export default function CharacterSheet({ character, onStressChange, onConsequenceChange, onNotesChange }: CharacterSheetProps) {
   const { t } = useTranslation()
-  const getStressLabel = useStressLabel
+  const getStressLabel = useStressLabel()
   // Use localized config so aspect slot labels are translated
   const config = useLocalizedSystemConfig(character.systemId)
   const isApproaches = config.skillMode === 'approaches'
