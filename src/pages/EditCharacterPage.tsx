@@ -28,14 +28,15 @@ export default function EditCharacterPage() {
   const existing = getById(id ?? '')
   const [character, setCharacter] = useState<Character | null>(null)
 
+  // ✅ хук перемещён сюда — вызывается всегда, до любых return
+  const config = useLocalizedSystemConfig(character?.systemId ?? existing?.systemId ?? 'fate-core')
+
   useEffect(() => {
     if (existing) setCharacter(existing)
     else navigate('/')
   }, [existing, navigate])
 
   if (!character) return null
-
-  const config = useLocalizedSystemConfig(character.systemId)
 
   const update = (fields: Partial<Character>) => {
     setCharacter(prev => {
