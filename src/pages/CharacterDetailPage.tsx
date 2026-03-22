@@ -73,6 +73,15 @@ export default function CharacterDetailPage() {
     return applyNpcVisibleFields(character, (character.visibleFields ?? []) as NpcVisibleField[])
   }, [character, isOwner, isGm])
 
+  // ✅ хук перемещён сюда — до любых ранних return
+  const config = useLocalizedSystemConfig(displayCharacter?.systemId ?? 'fate-core')
+
+  const SYSTEM_LABELS: Record<string, string> = {
+    'fate-core':        t('systems.fate-core'),
+    'fate-accelerated': t('systems.fate-accelerated'),
+    'book-of-ashes':    t('systems.book-of-ashes'),
+  }
+
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
       {t('character.loading')}
@@ -86,14 +95,6 @@ export default function CharacterDetailPage() {
       <Button variant="ghost" onClick={() => navigate(-1)}>← {t('common.back')}</Button>
     </div>
   )
-
-  const config = useLocalizedSystemConfig(displayCharacter.systemId)
-
-  const SYSTEM_LABELS: Record<string, string> = {
-    'fate-core':        t('systems.fate-core'),
-    'fate-accelerated': t('systems.fate-accelerated'),
-    'book-of-ashes':    t('systems.book-of-ashes'),
-  }
 
   const handleUpdate = (updated: Character) => { updateCharacter(updated); setCharacter(updated) }
   const handleNotesChange = (notes: string) => handleUpdate({ ...displayCharacter, notes })
